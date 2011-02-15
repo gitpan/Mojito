@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Template;
 BEGIN {
-  $Mojito::Template::VERSION = '0.001';
+  $Mojito::Template::VERSION = '0.01';
 }
 use Moo;
 use Data::Dumper::Concise;

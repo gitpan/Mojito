@@ -5,7 +5,6 @@ author:
 build_requires:
   English: 0
   FindBin: 0
-  Fixture: 0
   Test::Deep: 0
   Test::Differences: 0
   Test::Exception: 0
@@ -36,4 +35,4 @@ requires:
   aliased: 0
   perl: 5.010
   strictures: 1
-version: 0.001
+version: 0.01

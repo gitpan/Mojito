@@ -14,7 +14,6 @@ my %WriteMakefileArgs = (
   'BUILD_REQUIRES' => {
     'English' => '0',
     'FindBin' => '0',
-    'Fixture' => '0',
     'Test::Deep' => '0',
     'Test::Differences' => '0',
     'Test::Exception' => '0',
@@ -44,7 +43,7 @@ my %WriteMakefileArgs = (
     'aliased' => '0',
     'strictures' => '1'
   },
-  'VERSION' => '0.001',
+  'VERSION' => '0.01',
   'test' => {
     'TESTS' => 't/*.t'
   }
