@@ -1,0 +1,39 @@
+---
+abstract: 'Web Document System'
+author:
+  - 'Mateu X Hunter <hunter@missoula.org>'
+build_requires:
+  English: 0
+  FindBin: 0
+  Fixture: 0
+  Test::Deep: 0
+  Test::Differences: 0
+  Test::Exception: 0
+  Test::More: 0
+configure_requires:
+  ExtUtils::MakeMaker: 6.31
+dynamic_config: 0
+generated_by: 'Dist::Zilla version 4.200000, CPAN::Meta::Converter version 2.102400'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Mojito
+requires:
+  Data::Dumper::Concise: 0
+  HTML::Strip: 0
+  HTML::Zoom: 0
+  List::Util: 0
+  MongoDB: 0
+  MongoDB::OID: 0
+  Moo: 0
+  Moo::Role: 0
+  Pod::Simple::XHTML: 0
+  Scalar::Util: 0
+  Sub::Quote: 0
+  Text::Markdown: 0
+  Text::Textile: 0
+  aliased: 0
+  perl: 5.010
+  strictures: 1
+version: 0.001

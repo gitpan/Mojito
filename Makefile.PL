@@ -1,0 +1,73 @@
+
+use strict;
+use warnings;
+
+BEGIN { require 5.010; }
+
+use ExtUtils::MakeMaker 6.31;
+
+
+
+my %WriteMakefileArgs = (
+  'ABSTRACT' => 'Web Document System',
+  'AUTHOR' => 'Mateu X Hunter <hunter@missoula.org>',
+  'BUILD_REQUIRES' => {
+    'English' => '0',
+    'FindBin' => '0',
+    'Fixture' => '0',
+    'Test::Deep' => '0',
+    'Test::Differences' => '0',
+    'Test::Exception' => '0',
+    'Test::More' => '0'
+  },
+  'CONFIGURE_REQUIRES' => {
+    'ExtUtils::MakeMaker' => '6.31'
+  },
+  'DISTNAME' => 'Mojito',
+  'EXE_FILES' => [],
+  'LICENSE' => 'perl',
+  'NAME' => 'Mojito',
+  'PREREQ_PM' => {
+    'Data::Dumper::Concise' => '0',
+    'HTML::Strip' => '0',
+    'HTML::Zoom' => '0',
+    'List::Util' => '0',
+    'MongoDB' => '0',
+    'MongoDB::OID' => '0',
+    'Moo' => '0',
+    'Moo::Role' => '0',
+    'Pod::Simple::XHTML' => '0',
+    'Scalar::Util' => '0',
+    'Sub::Quote' => '0',
+    'Text::Markdown' => '0',
+    'Text::Textile' => '0',
+    'aliased' => '0',
+    'strictures' => '1'
+  },
+  'VERSION' => '0.001',
+  'test' => {
+    'TESTS' => 't/*.t'
+  }
+);
+
+
+unless ( eval { ExtUtils::MakeMaker->VERSION(6.56) } ) {
+  my $br = delete $WriteMakefileArgs{BUILD_REQUIRES};
+  my $pp = $WriteMakefileArgs{PREREQ_PM};
+  for my $mod ( keys %$br ) {
+    if ( exists $pp->{$mod} ) {
+      $pp->{$mod} = $br->{$mod} if $br->{$mod} > $pp->{$mod};
+    }
+    else {
+      $pp->{$mod} = $br->{$mod};
+    }
+  }
+}
+
+delete $WriteMakefileArgs{CONFIGURE_REQUIRES}
+  unless eval { ExtUtils::MakeMaker->VERSION(6.52) };
+
+WriteMakefile(%WriteMakefileArgs);
+
+
+
