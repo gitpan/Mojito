@@ -22,6 +22,7 @@ files/jquery/autoresize.jquery.min.js
 files/jquery/jquery-1.5.min.js
 files/syntax_highlight/prettify.css
 files/syntax_highlight/prettify.js
+lib/Mojito.pm
 lib/Mojito/Filter/Shortcuts.pm
 lib/Mojito/Page.pm
 lib/Mojito/Page/CRUD.pm

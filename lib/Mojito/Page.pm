@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page;
 BEGIN {
-  $Mojito::Page::VERSION = '0.01';
+  $Mojito::Page::VERSION = '0.02';
 }
 use Moo;
 use Sub::Quote qw(quote_sub);
@@ -14,18 +14,17 @@ An object to delegate to the Page family of objects.
 
 =head1 Synopsis
 
-use Mojito::Page;
-# Get page source from somewhere, mosted posted?
-my $page_source = $q->params('content');
-my $pager = Mojito::Page->new( page_source => $page_source);
-my $web_page = $pager->render_page;
+    use Mojito::Page;
+    my $page_source = $params->{content};
+    my $pager = Mojito::Page->new( page_source => $page_source);
+    my $web_page = $pager->render_page;
 
 =cut
 
 # delegatees
-use aliased 'Mojito::Page::Parse'  => 'PageParse';
-use aliased 'Mojito::Page::Render' => 'PageRender';
-use aliased 'Mojito::Page::CRUD'   => 'PageEdit';
+use Mojito::Page::Parse;
+use Mojito::Page::Render;
+use Mojito::Page::CRUD;
 
 # roles
 
@@ -82,9 +81,9 @@ sub BUILD {
     my $constructor_args_href = shift;
 
     # pass the options into the subclasses
-    $self->_build_parse(PageParse->new($constructor_args_href));
-    $self->_build_render(PageRender->new($constructor_args_href));
-    $self->_build_edit(PageEdit->new( $constructor_args_href));
+    $self->_build_parse(Mojito::Page::Parse->new($constructor_args_href));
+    $self->_build_render(Mojito::Page::Render->new($constructor_args_href));
+    $self->_build_edit(Mojito::Page::CRUD->new( $constructor_args_href));
 
 }
 

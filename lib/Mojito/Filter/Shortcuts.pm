@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Filter::Shortcuts;
 BEGIN {
-  $Mojito::Filter::Shortcuts::VERSION = '0.01';
+  $Mojito::Filter::Shortcuts::VERSION = '0.02';
 }
 use 5.010;
 
@@ -33,7 +33,7 @@ sub cpan_URL {
     my ($content) = @_;
     return if !$content;
     
-    $content =~ s/{{cpan\s+(.*)?}}/<a href="http:\/\/search.cpan.org\/perldoc?$1">$1<\/a>/i;
+    $content =~ s/{{cpan\s+([^}]*)}}/<a href="http:\/\/search.cpan.org\/perldoc?$1">$1<\/a>/sig;
     return $content;
 }
 

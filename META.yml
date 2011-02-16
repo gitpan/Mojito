@@ -32,7 +32,6 @@ requires:
   Sub::Quote: 0
   Text::Markdown: 0
   Text::Textile: 0
-  aliased: 0
   perl: 5.010
   strictures: 1
-version: 0.01
+version: 0.02
