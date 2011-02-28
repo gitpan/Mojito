@@ -35,14 +35,16 @@ my %WriteMakefileArgs = (
     'MongoDB::OID' => '0',
     'Moo' => '0',
     'Moo::Role' => '0',
+    'Plack::Middleware' => '0',
     'Pod::Simple::XHTML' => '0',
     'Scalar::Util' => '0',
     'Sub::Quote' => '0',
     'Text::Markdown' => '0',
     'Text::Textile' => '0',
+    'parent' => '0',
     'strictures' => '1'
   },
-  'VERSION' => '0.02',
+  'VERSION' => '0.03',
   'test' => {
     'TESTS' => 't/*.t'
   }

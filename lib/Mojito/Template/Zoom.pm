@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Template::Zoom;
 BEGIN {
-  $Mojito::Template::Zoom::VERSION = '0.02';
+  $Mojito::Template::Zoom::VERSION = '0.03';
 }
 use Moo;
 use HTML::Zoom;

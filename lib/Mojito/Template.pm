@@ -1,7 +1,8 @@
 use strictures 1;
+
 package Mojito::Template;
 BEGIN {
-  $Mojito::Template::VERSION = '0.02';
+  $Mojito::Template::VERSION = '0.03';
 }
 use Moo;
 use Data::Dumper::Concise;
@@ -14,6 +15,9 @@ has 'template' => (
     lazy    => 1,
     builder => '_build_template',
 );
+
+has base_url => ( is => 'rw', );
+
 has 'home_page' => (
     is      => 'rw',
     lazy    => 1,
@@ -35,6 +39,7 @@ my $js_css = join "\n", @javascripts, @css;
 sub _build_template {
     my $self = shift;
 
+    my $base_url = $self->base_url;
     my $edit_page = <<"END_HTML";
 <!doctype html>
 <html> 
@@ -54,7 +59,7 @@ $js_css
 <section id="edit_area">
 <form id="editForm" action="" accept-charset="UTF-8" method="post">
     <input id="mongo_id" name="mongo_id" type="hidden" form="editForm" value="" />
-    <textarea id="content"  name="content" rows=24 /></textarea><br />
+    <textarea id="content"  name="content" rows=32 /></textarea><br />
     <input id="submit_save" name="submit" type="submit" value="Save" /> 
     <input id="submit_view" name="submit" type="submit" value="Done" /> 
 </form>
@@ -64,7 +69,7 @@ $js_css
 </article>
 <footer>
 <nav id="edit_link" class="edit_link"></nav>
-<nav id="new_link" class="new_link"> <a href=/page>New</a></nav>
+<nav id="new_link" class="new_link"> <a href=${base_url}page>New</a></nav>
 </footer>
 </body>
 </html>
@@ -76,6 +81,7 @@ END_HTML
 sub _build_home_page {
     my $self = shift;
 
+    my $base_url = $self->base_url;
     my $home_page = <<"END_HTML";
 <!doctype html>
 <html> 
@@ -88,13 +94,13 @@ $js_css
 </head>
 <body class=html_body>
 <header>
-<nav id="new_link" class="new_link"> <a href=/page>New</a></nav>
+<nav id="new_link" class="new_link"> <a href=${base_url}page>New</a></nav>
 </header>
 <article id="body_wrapper">
 <section id="recent_area"></section>
 </article>
 <footer>
-<nav id="new_link" class="new_link"> <a href=/page>New</a></nav>
+<nav id="new_link" class="new_link"> <a href=${base_url}page>New</a></nav>
 </footer>
 </body>
 </html>
@@ -112,18 +118,22 @@ Get the contents of the edit page proper given the starting template and some da
 =cut
 
 sub fillin_edit_page {
-    my ( $self, $page_source, $page_view, $mongo_id, $base_url ) = @_;
-
-    my $output = $self->template;
-    $output =~ s/<script><\/script>/<script>mojito.preview_url = '${base_url}preview';<\/script>/s;
-    $output =~ s/(<input id="mongo_id".*?value=)""/$1"${mongo_id}"/si;
-    $output =~ s/(<textarea\s+id="content"[^>]*>)<\/textarea>/$1${page_source}<\/textarea>/si;
-    $output =~ s/(<section\s+id="view_area"[^>]*>)<\/section>/$1${page_view}<\/section>/si;
-
-    # An Experiment in Design: take out the save button, because we have autosave every few seconds
-    # plus the "View" button will be renamed "Done"
-     $output =~ s/<input id="submit_save".*?>//sig;
+    my ( $self, $page_source, $page_view, $mongo_id ) = @_;
     
+    my $output   = $self->template;
+    my $base_url = $self->base_url;
+    $output =~
+s/<script><\/script>/<script>mojito.preview_url = '${base_url}preview';<\/script>/s;
+    $output =~ s/(<input id="mongo_id".*?value=)""/$1"${mongo_id}"/si;
+    $output =~
+s/(<textarea\s+id="content"[^>]*>)<\/textarea>/$1${page_source}<\/textarea>/si;
+    $output =~
+s/(<section\s+id="view_area"[^>]*>)<\/section>/$1${page_view}<\/section>/si;
+
+# An Experiment in Design: take out the save button, because we have autosave every few seconds
+# plus the "View" button will be renamed "Done"
+    $output =~ s/<input id="submit_save".*?>//sig;
+
     # Remove recent area
     $output =~ s/<section id="recent_area".*?><\/section>//si;
 
@@ -144,12 +154,14 @@ Get the contents of the create page proper given the starting template and some 
 =cut
 
 sub fillin_create_page {
-    my ( $self, $base_url ) = @_;
+    my ($self) = @_;
 
-    my $output = $self->template;
-   
+    my $output   = $self->template;
+    my $base_url = $self->base_url;
+
     # Set mojito preiview_url variable
-    $output =~ s/<script><\/script>/<script>mojito.preview_url = '${base_url}preview'<\/script>/;
+    $output =~
+s/<script><\/script>/<script>mojito.preview_url = '${base_url}preview'<\/script>/;
 
     # Take out view button and change save to create.
     $output =~ s/<input id="submit_view".*?>//;
@@ -165,9 +177,8 @@ sub fillin_create_page {
 
     # body with no style
     $output =~ s/<body.*?>/<body>/si;
-    
+
     return $output;
 }
-
 
 1

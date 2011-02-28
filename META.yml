@@ -27,11 +27,13 @@ requires:
   MongoDB::OID: 0
   Moo: 0
   Moo::Role: 0
+  Plack::Middleware: 0
   Pod::Simple::XHTML: 0
   Scalar::Util: 0
   Sub::Quote: 0
   Text::Markdown: 0
   Text::Textile: 0
+  parent: 0
   perl: 5.010
   strictures: 1
-version: 0.02
+version: 0.03

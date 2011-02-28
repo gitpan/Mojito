@@ -10,6 +10,7 @@ app/mojito_dancer.psgi
 app/mojito_mojolicious.psgi
 app/mojito_tatsumaki.psgi
 bench/edit_page.t
+bench/konichiwa.psgi
 bench/page.pl
 bench/profile_render.pl
 bench/selectors.pl
@@ -24,6 +25,7 @@ files/syntax_highlight/prettify.css
 files/syntax_highlight/prettify.js
 lib/Mojito.pm
 lib/Mojito/Filter/Shortcuts.pm
+lib/Mojito/Middleware.pm
 lib/Mojito/Page.pm
 lib/Mojito/Page/CRUD.pm
 lib/Mojito/Page/Parse.pm
@@ -38,6 +40,7 @@ t/build_sections.t
 t/data/Fixture.pm
 t/page.t
 t/parse_page.t
+t/release-cpan-changes.t
 t/release-pod-coverage.t
 t/release-pod-syntax.t
 t/shortcuts.t

@@ -1,37 +1,44 @@
 #!/usr/bin/env perl
 
-use Web::Simple 'Mojito';
+use Web::Simple 'MojitoApp';
 use Dir::Self;
 use lib __DIR__ . "/../lib";
 use lib __DIR__ . "/../t/data";
-use Fixture;
+use Mojito;
 use Mojito::Page;
-use Mojito::Page::CRUD;
-use Mojito::Template;
 use JSON;
+
+use Data::Dumper::Concise;
 
 {
 
-    package Mojito;
-    my $render = Mojito::Page::Render->new;
-    my $editer = Mojito::Page::CRUD->new;
-    my $pager  = Mojito::Page->new( page => '<sx>Mojito page</sx>' );
-    my $tmpl   = Mojito::Template->new;
-
-    #    use Data::Dumper::Concise;
+    package MojitoApp;
+    my $mojito = Mojito->new;
 
     sub dispatch_request {
+        my ( $self, $env ) = @_;
+
+        my $base_url = $env->{SCRIPT_NAME} || '/';
+
+        # make sure the base url ends with a slash
+        $base_url =~ s/([^\/])$/$1\//;
+
+        # pass base url to mojito where we can reuse it
+        # Also added it to pager.  A little redundant but
+        # tighter than before.
+        $mojito->base_url($base_url);
+        my $pager = Mojito::Page->new(
+            {
+                page     => '<sx>Mojito page</sx>',
+                base_url => $base_url,
+            }
+        );
 
         # A Benchmark URI
         sub (GET + /bench ) {
             my ($self) = @_;
-            my $pager = Mojito::Page->new( page => $Fixture::implicit_section );
-            my $page_struct = $pager->page_structure;
-            my $editer      = Mojito::Page::CRUD->new( db_name => 'bench' );
-            my $id          = $editer->create($page_struct);
-
-            #my $page             = $editer->read($id);
-            my $rendered_content = $pager->render_page($page_struct);
+            
+            my $rendered_content = $mojito->bench;
 
             [ 200, [ 'Content-type', 'text/html' ], [$rendered_content] ];
           },
@@ -40,8 +47,7 @@ use JSON;
           sub (GET + /page ) {
             my ($self) = @_;
 
-            my $base_url = base_url( $_[PSGI_ENV] );
-            my $output   = $tmpl->fillin_create_page($base_url);
+            my $output = $pager->fillin_create_page;
 
             [ 200, [ 'Content-type', 'text/html' ], [$output] ];
           },
@@ -50,20 +56,8 @@ use JSON;
           sub (POST + /page + %* ) {
             my ( $self, $params ) = @_;
 
-            warn "Create Page";
-
-            #			warn "content: ", $params->{content};
-            #warn "submit type: ", $params->{submit};
-
-            my $pager = Mojito::Page->new( page => $params->{content} );
-            my $page_struct = $pager->page_structure;
-            $page_struct->{page_html} = $render->render_page($page_struct);
-            $page_struct->{body_html} = $render->render_body($page_struct);
-            $page_struct->{title} =
-              $pager->intro_text( $page_struct->{body_html} );
-            warn "title: ", $page_struct->{title};
-            my $id           = $pager->create($page_struct);
-            my $redirect_url = "/page/${id}/edit";
+            my $id           = $mojito->create_page($params);
+            my $redirect_url = "${base_url}page/${id}/edit";
 
             [ 301, [ Location => $redirect_url ], [] ];
           },
@@ -72,16 +66,7 @@ use JSON;
           sub (GET + /page/* ) {
             my ( $self, $id ) = @_;
 
-            warn "View Page $id";
-            my $page          = $pager->read($id);
-            my $rendered_page = $pager->render_page($page);
-            my $links         = $editer->get_most_recent_links;
-
-            # Change class on view_area when we're in view mode.
-            $rendered_page =~
-s/(<section\s+id="view_area").*?>/$1 class="view_area_view_mode">/si;
-            $rendered_page =~
-s/(<section\s+id="recent_area".*?>)<\/section>/$1${links}<\/section>/si;
+            my $rendered_page = $mojito->view_page( { id => $id } );
 
             [ 200, [ 'Content-type', 'text/html' ], [$rendered_page] ];
           },
@@ -91,7 +76,8 @@ s/(<section\s+id="recent_area".*?>)<\/section>/$1${links}<\/section>/si;
             my ($self) = @_;
 
             my $want_delete_link = 1;
-            my $links = $pager->get_most_recent_links($want_delete_link);
+            my $links =
+              $pager->get_most_recent_links($want_delete_link);
 
             [ 200, [ 'Content-type', 'text/html' ], [$links] ];
           },
@@ -100,43 +86,17 @@ s/(<section\s+id="recent_area".*?>)<\/section>/$1${links}<\/section>/si;
           sub (POST + /preview + %*) {
             my ( $self, $params ) = @_;
 
-            my $pager = Mojito::Page->new( page => $params->{content} );
-            my $page_struct = $pager->page_structure;
-            if (   ( $params->{extra_action} eq 'save' )
-                && ( $params->{'mongo_id'} ) )
-            {
-                $page_struct->{page_html} = $pager->render_page($page_struct);
-                $page_struct->{body_html} = $pager->render_body($page_struct);
-                $page_struct->{title} =
-                  $render->intro_text( $page_struct->{body_html} );
-                $pager->update( $params->{'mongo_id'}, $page_struct );
-            }
-            elsif ($params->{'mongo_id'}) {
-                # Auto update this stuff so the user doesn't have to even think about clicking save button
-                # May still put in a save button later, but I think it should be tested without.   Just a 'Done' button take you to view.
-                $pager->update( $params->{'mongo_id'}, $page_struct );
-            }
-                
+            my $response_href = $mojito->preview_page($params);
+            my $JSON_response = JSON::encode_json($response_href);
 
-            my $rendered_content = $pager->render_body($page_struct);
-            my $response_href    = { rendered_content => $rendered_content };
-            my $JSON_response    = JSON::encode_json($response_href);
             [ 200, [ 'Content-type', 'application/json' ], [$JSON_response] ];
           },
 
           # Present UPDATE Page Form
           sub (GET + /page/*/edit ) {
-            my ( $self, $id, $other ) = @_;
+            my ( $self, $id ) = @_;
 
-            #warn "Update Form for Page $id";
-            my $page             = $pager->read($id);
-            my $rendered_content = $pager->render_body($page);
-            my $source           = $page->{page_source};
-
-            # write source and rendered content into their tags
-            my $output =
-              $tmpl->fillin_edit_page( $source, $rendered_content, $id,
-                base_url( $_[PSGI_ENV] ) );
+            my $output = $mojito->edit_page_form( { id => $id } );
 
             [ 200, [ 'Content-type', 'text/html' ], [$output] ];
           },
@@ -145,42 +105,17 @@ s/(<section\s+id="recent_area".*?>)<\/section>/$1${links}<\/section>/si;
           sub (POST + /page/*/edit + %*) {
             my ( $self, $id, $params ) = @_;
 
-            #warn "UPDATE Page $id";
-            #warn "submit value: ", $params->{submit};
-            my $pager = Mojito::Page->new( page => $params->{content} );
-            my $page = $pager->page_structure;
-
-            # Store rendered parts as well.  May as well until proven wrong.
-            $page->{page_html} = $pager->render_page($page);
-            $page->{body_html} = $pager->render_body($page);
-            $page->{title}     = $pager->intro_text( $page->{body_html} );
-
-
-            # Save page
-            $pager->update( $id, $page );
-
-            # If view button was pushed let's go to view
-            if ( $params->{submit} eq 'Done' ) {
-                #warn "going to View for id: $id";
-                my $redirect_url = "/page/${id}";
-
-                return [ 301, [ Location => $redirect_url ], [] ];
-            }
-
-            my $source           = $page->{page_source};
-            my $rendered_content = $pager->render_body($page);
-            my $output =
-              $tmpl->fillin_edit_page( $source, $rendered_content, $id,
-                base_url( $_[PSGI_ENV] ) );
-
-            return [ 200, [ 'Content-type', 'text/html' ], [$output] ];
+            $params->{id} = $id;
+            my $page = $mojito->update_page($params);
+            my $redirect_url = "${base_url}page/${id}";
+            
+            return [ 301, [ Location => $redirect_url ], [] ];
           },
 
           # DELETE a Page
           sub (GET + /page/*/delete ) {
-            my ( $self, $id, $other ) = @_;
+            my ( $self, $id ) = @_;
 
-            warn "Delete page $id";
             $pager->delete($id);
 
             return [ 301, [ Location => '/recent' ], [] ];
@@ -194,40 +129,23 @@ s/(<section\s+id="recent_area".*?>)<\/section>/$1${links}<\/section>/si;
           sub (GET + /) {
             my ($self) = @_;
 
-            my $output = $tmpl->home_page;
-            my $links  = $pager->get_most_recent_links;
-            $output =~ s/(<section\s+id="recent_area".*?>)<\/section>/$1${links}<\/section>/si;
+            my $output = $pager->home_page;
+            my $links = $pager->get_most_recent_links;
+            $output =~
+s/(<section\s+id="recent_area".*?>)<\/section>/$1${links}<\/section>/si;
 
             [ 200, [ 'Content-type', 'text/html' ], [$output] ];
           },
 
           sub (GET) {
-            [ 200, [ 'Content-type', 'text/plain' ], ['Hello world!'] ];
+            [ 200, [ 'Content-type', 'text/plain' ], ['Hola world!'] ];
           },
 
           sub () {
             [ 405, [ 'Content-type', 'text/plain' ], ['Method not allowed'] ];
-          }
+          },
+
     }
-
-    sub fillin_view_page { }
-
-    sub base_url {
-        my $env = shift;
-
-        my $uri = $env->{SCRIPT_NAME} || '/';
-
-        #          ($env->{'psgi.url_scheme'} || "http")
-        #          . "://"
-        #          . (
-        #            $env->{HTTP_HOST}
-        #              || (($env->{SERVER_NAME} || "")
-        #              . " : "
-        #              . ($env->{SERVER_PORT} || 80))
-        #          ) . ($env->{SCRIPT_NAME} || '/');
-        return $uri;
-    }
-
 }
 
-Mojito->run_if_script;
+MojitoApp->run_if_script;

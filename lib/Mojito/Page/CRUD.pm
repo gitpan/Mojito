@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page::CRUD;
 BEGIN {
-  $Mojito::Page::CRUD::VERSION = '0.02';
+  $Mojito::Page::CRUD::VERSION = '0.03';
 }
 use MongoDB::OID;
 use 5.010;
@@ -9,6 +9,8 @@ use Moo;
 use Data::Dumper::Concise;
 
 with('Mojito::Role::DB');
+
+has base_url => ( is => 'rw', );
 
 =head1 Methods
 
@@ -139,12 +141,14 @@ Turn the data into HTML
 sub get_most_recent_links {
     my ($self, $want_delete_link) = @_;
     
+    my $base_url = $self->base_url;
+    
     my $link_data = $self->get_most_recent_link_data;
     my $links = '<b>Recent Articles</b><br />';
     foreach my $datum (@{$link_data}) {
-        $links .= '<a href="/page/' . $datum->{id} . '">' . $datum->{title} . "</a>";
+        $links .= "<a href=\"${base_url}page/" . $datum->{id} . '">' . $datum->{title} . "</a>";
         if ($want_delete_link) {
-            $links .=  ' | <a id="page_delete" href="/page/'   . $datum->{id} . '/delete"> delete</a>';
+            $links .=  " | <a id=\"page_delete\" href=\"${base_url}page/"   . $datum->{id} . '/delete"> delete</a>';
         }
         $links .= "<br />\n";
     }

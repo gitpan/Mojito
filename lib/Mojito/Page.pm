@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page;
 BEGIN {
-  $Mojito::Page::VERSION = '0.02';
+  $Mojito::Page::VERSION = '0.03';
 }
 use Moo;
 use Sub::Quote qw(quote_sub);
@@ -21,10 +21,11 @@ An object to delegate to the Page family of objects.
 
 =cut
 
-# delegatees
+# delegates
 use Mojito::Page::Parse;
 use Mojito::Page::Render;
 use Mojito::Page::CRUD;
+use Mojito::Template;
 
 # roles
 
@@ -68,6 +69,19 @@ has editer => (
     writer => '_build_edit',
 );
 
+has tmpl => (
+    is      => 'ro',
+    isa     => sub { die "Need a Template object" unless $_[0]->isa('Mojito::Template') },
+    handles => [
+        qw(
+          template
+          home_page
+          fillin_create_page
+          fillin_edit_page
+          )
+    ],
+    writer => '_build_template',
+);
 =head1 Methods
 
 =head2 BUILD
@@ -84,6 +98,7 @@ sub BUILD {
     $self->_build_parse(Mojito::Page::Parse->new($constructor_args_href));
     $self->_build_render(Mojito::Page::Render->new($constructor_args_href));
     $self->_build_edit(Mojito::Page::CRUD->new( $constructor_args_href));
+    $self->_build_template(Mojito::Template->new( $constructor_args_href));
 
 }
 
