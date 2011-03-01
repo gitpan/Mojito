@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page::Parse;
 BEGIN {
-  $Mojito::Page::Parse::VERSION = '0.03';
+  $Mojito::Page::Parse::VERSION = '0.04';
 }
 use 5.010;
 use Moo;
@@ -12,11 +12,12 @@ use Data::Dumper::Concise;
 has 'page' => (
     is       => 'rw',
     isa      => Mojito::Types::NoRef,
-    required => 1,
+#    required => 1,
 );
 has 'sections' => (
     is      => 'ro',
     isa     => Mojito::Types::AHRef,
+    lazy    => 1,
     builder => 'build_sections',
 );
 has 'page_structure' => (
@@ -76,7 +77,7 @@ sub has_nested_section {
     my $section_open_regex  = $self->section_open_regex;
     my $section_close_regex = $self->section_close_regex;
 
-    die "Got no page" if !$self->page;
+    #die "Got no page" if !$self->page;
     my @stuff_between_section_opens =
       $self->page =~ m/${section_open_regex}(.*?)${section_open_regex}/sg;
 

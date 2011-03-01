@@ -36,4 +36,4 @@ requires:
   parent: 0
   perl: 5.010
   strictures: 1
-version: 0.03
+version: 0.04
