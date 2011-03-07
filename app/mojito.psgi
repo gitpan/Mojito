@@ -6,21 +6,13 @@ use JSON;
 use Data::Dumper::Concise;
 
 {
-
     package MojitoApp;
-
+    use Plack::Builder;
+    use Mojito::Auth;
+    
     sub dispatch_request {
         my ( $self, $env ) = @_;
-
-        my $base_url = $env->{SCRIPT_NAME} || '/';
-
-        # make sure the base url ends with a slash
-        $base_url =~ s/([^\/])$/$1\//;
-
-        # pass base url to mojito where we can reuse it
-        # Also added it to pager.  A little redundant but
-        # tighter than before.
-        my $mojito = Mojito->new( base_url => $base_url);
+        my $mojito = $env->{mojito};
 
         # A Benchmark URI
         sub (GET + /bench ) {
@@ -44,8 +36,7 @@ use Data::Dumper::Concise;
           sub (POST + /page + %* ) {
             my ( $self, $params ) = @_;
 
-            my $id           = $mojito->create_page($params);
-            my $redirect_url = "${base_url}page/${id}/edit";
+            my $redirect_url = $mojito->create_page($params);
 
             [ 301, [ Location => $redirect_url ], [] ];
           },
@@ -93,8 +84,7 @@ use Data::Dumper::Concise;
             my ( $self, $id, $params ) = @_;
 
             $params->{id} = $id;
-            my $page = $mojito->update_page($params);
-            my $redirect_url = "${base_url}page/${id}";
+            my $redirect_url = $mojito->update_page($params);
             
             return [ 301, [ Location => $redirect_url ], [] ];
           },
@@ -102,10 +92,7 @@ use Data::Dumper::Concise;
           # DELETE a Page
           sub (GET + /page/*/delete ) {
             my ( $self, $id ) = @_;
-
-            $mojito->delete($id);
-
-            return [ 301, [ Location => '/recent' ], [] ];
+            return [ 301, [ Location => $mojito->delete_page({id => $id}) ], [] ];
           },
 
           sub (GET + /hola/* ) {
@@ -131,8 +118,24 @@ s/(<section\s+id="recent_area".*?>)<\/section>/$1${links}<\/section>/si;
           sub () {
             [ 405, [ 'Content-type', 'text/plain' ], ['Method not allowed'] ];
           },
-
     }
+    
+    # Wrap in middleware here.
+    around 'to_psgi_app', sub {
+        my ($orig, $self) = (shift, shift);
+        my $app = $self->$orig(@_); 
+        builder {
+            enable "+Mojito::Middleware";
+           # enable "Auth::Basic", authenticator => \&Mojito::Auth::authen_cb;
+            enable_if { $_[0]->{PATH_INFO} !~ m/^\/(?:public|favicon.ico)/ }
+              "Auth::Digest",
+              realm => "Mojito", 
+              secret => Mojito::Auth::_secret,
+              password_hashed => 1,
+              authenticator => Mojito::Auth->new->digest_authen_cb;
+            $app;
+        };
+    };
 }
 
 MojitoApp->run_if_script;

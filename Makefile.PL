@@ -28,6 +28,7 @@ my %WriteMakefileArgs = (
   'NAME' => 'Mojito',
   'PREREQ_PM' => {
     'Data::Dumper::Concise' => '0',
+    'Digest::MD5' => '0',
     'HTML::Strip' => '0',
     'HTML::Zoom' => '0',
     'List::Util' => '0',
@@ -44,7 +45,7 @@ my %WriteMakefileArgs = (
     'parent' => '0',
     'strictures' => '1'
   },
-  'VERSION' => '0.04',
+  'VERSION' => '0.05',
   'test' => {
     'TESTS' => 't/*.t'
   }

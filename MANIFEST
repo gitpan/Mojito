@@ -24,6 +24,7 @@ files/jquery/jquery-1.5.min.js
 files/syntax_highlight/prettify.css
 files/syntax_highlight/prettify.js
 lib/Mojito.pm
+lib/Mojito/Auth.pm
 lib/Mojito/Filter/Shortcuts.pm
 lib/Mojito/Middleware.pm
 lib/Mojito/Page.pm
@@ -34,6 +35,8 @@ lib/Mojito/Role/DB.pm
 lib/Mojito/Template.pm
 lib/Mojito/Template/Zoom.pm
 lib/Mojito/Types.pm
+script/add_user.pl
+script/wtf-gi.pl
 t/author-critic.t
 t/build_page_structure.t
 t/build_sections.t

@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Middleware;
 BEGIN {
-  $Mojito::Middleware::VERSION = '0.04';
+  $Mojito::Middleware::VERSION = '0.05';
 }
 use parent qw(Plack::Middleware);
 use Mojito;

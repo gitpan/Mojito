@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Filter::Shortcuts;
 BEGIN {
-  $Mojito::Filter::Shortcuts::VERSION = '0.04';
+  $Mojito::Filter::Shortcuts::VERSION = '0.05';
 }
 use 5.010;
 

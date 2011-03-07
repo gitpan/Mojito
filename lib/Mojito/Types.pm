@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Types;
 BEGIN {
-  $Mojito::Types::VERSION = '0.04';
+  $Mojito::Types::VERSION = '0.05';
 }
 use Sub::Quote qw(quote_sub);
 use Scalar::Util;
@@ -51,6 +51,16 @@ A HashRef type
 
 sub HashRef () {  ## no critic
     quote_sub q{ die "$_[0] is not an HashRef!" if ref($_[0]) ne 'HASH' };
+}
+
+=head2 CodeRef
+
+A CodeRef type
+
+=cut
+
+sub CodeRef () {  ## no critic
+    quote_sub q{ die "$_[0] is not an CodeRef!" if ref($_[0]) ne 'CODE' };
 }
 
 =head2 RegexpRef

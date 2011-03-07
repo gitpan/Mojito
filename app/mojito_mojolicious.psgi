@@ -1,86 +1,76 @@
 #!/usr/bin/env perl
 use Mojolicious::Lite;
 use Mojito;
+use Mojito::Auth;
+use Plack::Builder;
 
-my ($mojito, $base_url);
-
-app->hook(before_dispatch => sub {
-    my $self  = shift;
-    $base_url = $self->req->url->base;
-    if ($base_url !~ m/\/$/) {
-        $base_url .= '/';
-    }
-    $mojito = Mojito->new( base_url => $base_url );
+# Make a shortcut the the mojito app object
+app->helper( mojito => sub {
+    return $_[0]->req->env->{mojito};
 });
-
-
+ 
 get '/bench' => sub {
-    my $self        = shift;
-    $self->render( text => $mojito->bench );
+    $_[0]->render( text => $_[0]->mojito->bench );
 };
 
 get '/hola/:name' => sub {
-    my $self = shift;
-    $self->render( text => "Hola " . $self->param('name') );
+    $_[0]->render( text => "Hola " . $_[0]->param('name') );
 };
 
 get '/page' => sub {
-    my $self = shift;
-    $self->render( text => $mojito->fillin_create_page );
+    $_[0]->render( text => $_[0]->mojito->fillin_create_page );
 };
 
 post '/page' => sub {
-    my $self = shift;
-    my $params = $self->req->params->to_hash;
-    my $id = $mojito->create_page($params);
-    $self->redirect_to("${base_url}page/${id}/edit");
+    $_[0]->redirect_to(
+        $_[0]->mojito->create_page( $_[0]->req->params->to_hash ) );
 };
 
 post '/preview' => sub {
-    my $self = shift;
-    $self->render( json => $mojito->preview_page($self->req->params->to_hash) );
+    $_[0]->render( json =>
+          $_[0]->mojito->preview_page( $_[0]->req->params->to_hash )
+    );
 };
 
 get '/page/:id' => sub {
-    my $self = shift;
-    $self->render( text => $mojito->view_page( {id => $self->param('id')} ) );
+    $_[0]->render( text =>
+          $_[0]->mojito->view_page( { id => $_[0]->param('id') } )
+    );
 };
 
 get '/page/:id/edit' => sub {
-    my $self = shift;
-    $self->render( text => $mojito->edit_page_form( {id => $self->param('id')} ) );
+    $_[0]->render( text => $_[0]->mojito->edit_page_form( { id => $_[0]->param('id') } ) );
 };
 
 post '/page/:id/edit' => sub {
-    my $self = shift;
-    my $id = $self->param('id');
-    my $params = $self->req->params->to_hash;
-    # for whatever reason ->params doesn't include placeholder params
-    $params->{'id'} = $id;
-    my $page = $mojito->update_page($params);
-    $self->redirect_to("${base_url}page/${id}");
+
+    # $self->req->params doesn't include placeholder $self->param() 's 
+    my $params = $_[0]->req->params->to_hash;
+    $params->{'id'} = $_[0]->param('id');
+
+    $_[0]->redirect_to($_[0]->mojito->update_page($params));
 };
 
 get '/page/:id/delete' => sub {
-    my $self = shift;
-    my $id = $self->param('id');
-    $mojito->delete($id);
-    $self->redirect_to($base_url . 'recent');
+    $_[0]->redirect_to( $_[0]->mojito->delete_page({ id => $_[0]->param('id') }) );
 };
 
 get '/recent' => sub {
-    my $self = shift;
-    my $want_delete_link = 1;
-    my $links            = $mojito->get_most_recent_links($want_delete_link);
-    $self->render( text => $links );
+    $_[0]->render( text => $_[0]->mojito->get_most_recent_links({want_delete_link => 1}));
 };
 
 get '/' => sub {
-    my $self = shift;
-    my $output = $mojito->home_page;
-    my $links  = $mojito->get_most_recent_links;
-    $output =~ s/(<section\s+id="recent_area".*?>)<\/section>/$1${links}<\/section>/si;
-    $self->render( text => $output );
+    $_[0]->render( text => $_[0]->mojito->view_home_page );
 };
 
-app->start;
+builder {
+    enable "+Mojito::Middleware";
+#    enable "Auth::Basic", authenticator => \&Mojito::Auth::authen_cb;
+    enable_if { $_[0]->{PATH_INFO} !~ m/^\/(?:public|favicon.ico)/ }
+      "Auth::Digest", 
+      realm => "Mojito", 
+      secret => Mojito::Auth::_secret,
+      password_hashed => 1,
+      authenticator => Mojito::Auth->new->digest_authen_cb;
+    app->start;
+};

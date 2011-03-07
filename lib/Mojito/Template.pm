@@ -2,7 +2,7 @@ use strictures 1;
 
 package Mojito::Template;
 BEGIN {
-  $Mojito::Template::VERSION = '0.04';
+  $Mojito::Template::VERSION = '0.05';
 }
 use Moo;
 use Data::Dumper::Concise;

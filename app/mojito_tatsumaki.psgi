@@ -5,8 +5,6 @@ use Tatsumaki::HTTPClient;
 use Tatsumaki::Server;
 use JSON;
 
-use Data::Dumper::Concise;
-
 package MainHandler;
 use parent qw(Tatsumaki::Handler);
 use Data::Dumper::Concise;
@@ -47,9 +45,8 @@ sub get {
 
 sub post {
     my ($self) = @_;
-    my $base_url = $self->request->env->{'mojito'}->base_url;
-    my $id = $self->request->env->{'mojito'}->create_page( $self->request->parameters );
-    $self->response->redirect("${base_url}page/${id}/edit");
+    my $redirect_url = $self->request->env->{'mojito'}->create_page( $self->request->parameters );
+    $self->response->redirect($redirect_url);
 }
 
 package PreviewPage;
@@ -74,6 +71,14 @@ sub get {
     $self->write($self->request->env->{'mojito'}->view_page({ id => $id }));
 }
 
+package ViewPagePublic;
+use parent qw(Tatsumaki::Handler);
+
+sub get {
+    my ( $self, $id ) = @_;
+    $self->write($self->request->env->{'mojito'}->view_page({ id => $id }));
+}
+
 package EditPage;
 use parent qw(Tatsumaki::Handler);
 
@@ -87,11 +92,9 @@ sub post {
 
     my $params = $self->request->parameters;
     $params->{id} = $id;
-    my $mojito = $self->request->env->{'mojito'};
-    $mojito->update_page($params);
-    my $base_url = $mojito->base_url;
+    my $redirect_url = $self->request->env->{'mojito'}->update_page($params);
     
-    $self->response->redirect("${base_url}page/${id}");
+    $self->response->redirect($redirect_url);
 }
 
 package RecentPage;
@@ -99,10 +102,7 @@ use parent qw(Tatsumaki::Handler);
 
 sub get {
     my ($self) = @_;
-
-    my $want_delete_link = 1;
-    my $links = $self->request->env->{'mojito'}->get_most_recent_links($want_delete_link);
-    
+    my $links = $self->request->env->{'mojito'}->get_most_recent_links({want_delete_link => 1});
     $self->write($links);
 }
 
@@ -111,12 +111,14 @@ use parent qw(Tatsumaki::Handler);
 
 sub get {
     my ( $self, $id ) = @_;
-    $self->request->env->{'mojito.pager'}->delete($id);
-    $self->response->redirect($self->request->env->{'mojito'}->base_url . 'recent');
+    $self->response->redirect($self->request->env->{mojito}->delete_page({id => $id}));
 }
 
 package main;
 use Plack::Builder;
+use Mojito;
+use Mojito::Auth;
+use Data::Dumper::Concise;
 
 my $app = Tatsumaki::Application->new(
     [
@@ -127,15 +129,25 @@ my $app = Tatsumaki::Application->new(
         '/page/(\w+)/edit'   => 'EditPage',
         '/page/(\w+)/delete' => 'DeletePage',
         '/page/(\w+)'        => 'ViewPage',
+        '/public/page/(\w+)' => 'ViewPagePublic',
         '/page'              => 'CreatePage',
         '/preview'           => 'PreviewPage',
     ]
 );
 
 builder {
-
-    #    enable "Debug";
     enable "+Mojito::Middleware";
+    # enable "Auth::Basic", authenticator => \&Mojito::Auth::authen_cb;
+    # enable "Debug";
+    # enable 'Session';
+    # enable 'Auth::Form', authenticator => sub { 1 };
+    
+    enable_if { $_[0]->{PATH_INFO} !~ m/^\/(?:public|favicon.ico)/ } 
+      "Auth::Digest", 
+      realm => "Mojito", 
+      secret => Mojito::Auth::_secret,
+      password_hashed => 1,
+      authenticator => Mojito::Auth->new->digest_authen_cb;
     $app;
 };
 
