@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page;
 BEGIN {
-  $Mojito::Page::VERSION = '0.05';
+  $Mojito::Page::VERSION = '0.06';
 }
 use Moo;
 use Sub::Quote qw(quote_sub);
@@ -64,6 +64,7 @@ has editer => (
             update
             delete
             get_most_recent_links
+            get_feed_links
           )
     ],
     writer => '_build_edit',

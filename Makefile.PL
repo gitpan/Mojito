@@ -27,8 +27,10 @@ my %WriteMakefileArgs = (
   'LICENSE' => 'perl',
   'NAME' => 'Mojito',
   'PREREQ_PM' => {
+    'Cwd' => '0',
     'Data::Dumper::Concise' => '0',
     'Digest::MD5' => '0',
+    'Dir::Self' => '0',
     'HTML::Strip' => '0',
     'HTML::Zoom' => '0',
     'List::Util' => '0',
@@ -45,7 +47,7 @@ my %WriteMakefileArgs = (
     'parent' => '0',
     'strictures' => '1'
   },
-  'VERSION' => '0.05',
+  'VERSION' => '0.06',
   'test' => {
     'TESTS' => 't/*.t'
   }

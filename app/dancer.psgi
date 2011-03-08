@@ -2,6 +2,7 @@
 use Dancer;
 use Dancer::Plugin::Ajax;
 use Plack::Builder;
+use lib '../lib';
 use Mojito;
 use Mojito::Auth;
 
@@ -13,16 +14,6 @@ set 'log'         => 'debug';
 set 'show_errors' => 1;
 set 'access_log'  => 1;
 set 'warnings'    => 1;
-
-set plack_middlewares => [
-        [ "+Mojito::Middleware" ],
-#        [ "Auth::Basic",   authenticator => \&Mojito::Auth::authen_cb ],
-        [ "Auth::Digest", 
-              realm => "Mojito", 
-              secret => Mojito::Auth::_secret,
-              password_hashed => 1,
-              authenticator => Mojito::Auth->new->digest_authen_cb, ],
-];
 
 # Provide a shortcut to the mojito object
 my ($mojito);
@@ -55,6 +46,10 @@ get '/page/:id' => sub {
     return $mojito->view_page( {id => params->{id}} );
 };
 
+get '/public/page/:id' => sub {
+    return $mojito->view_page_public( {id => params->{id}} );
+};
+
 get '/page/:id/edit' => sub {
     return $mojito->edit_page_form( {id => params->{id}} );
 };
@@ -73,6 +68,10 @@ get '/recent' => sub {
 
 get '/' => sub {
     return $mojito->view_home_page;
+};
+
+get '/public/feed/:feed' => sub {
+    return $mojito->get_feed_links(params->{feed});
 };
 
 builder {

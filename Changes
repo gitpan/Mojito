@@ -1,3 +1,9 @@
+0.06      2011-03-07 23:02:08 America/Denver
+          [Enchantments]
+          - mojito.conf with mojito_local.conf and $ENV{MOJITO_CONFIG} override option.
+          - Expose /public/feed and /public/page views 
+          
+
 0.05      2011-03-07 08:26:26 America/Denver
           [Enchantments]
           - Digest Authentication required on all non /public URLs

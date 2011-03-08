@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito;
 BEGIN {
-  $Mojito::VERSION = '0.05';
+  $Mojito::VERSION = '0.06';
 }
 use Moo;
 
@@ -96,6 +96,13 @@ sub update_page {
     $page->{page_html} = $self->render_page($page);
     $page->{body_html} = $self->render_body($page);
     $page->{title}     = $self->intro_text( $page->{body_html} );
+    
+    # Add a feed if there is such a param
+    if (my $feeds = $params->{feeds}) {
+        # Allow : to separate multiple feeds. e.g. ?feed=ironman:chatterbox
+        my @feeds = split ':', $feeds;
+        $page->{feeds} = [@feeds]; 
+    }
 
     # Save page
     $self->update( $params->{id}, $page );
@@ -139,6 +146,34 @@ sub view_page {
     $rendered_page =~
       s/(<section\s+id="recent_area".*?>)<\/section>/$1${links}<\/section>/si;
 
+    return $rendered_page;
+}
+
+=head2 view_page_public
+
+Given a page id, we retrieve its page from the db and return
+the HTML form of the page to the browser.  This method is much
+like the view_page() method is setup for public pages
+(ones that do not require authentication).
+
+=cut
+
+sub view_page_public {
+    my ( $self, $params ) = @_;
+
+    my $page          = $self->read( $params->{id} );
+    my $rendered_page = $self->render_page($page);
+
+    # Change class on view_area when we're in view mode.
+    $rendered_page =~
+      s/(<section\s+id="view_area").*?>/$1 class="view_area_view_mode">/si;
+    
+    # Strip out Edit and New links (even though they are Auth::Digest Protected)
+    # Remove edit, new links and the recent area
+    $rendered_page =~ s/<nav id="edit_link".*?><\/nav>//sig;
+    $rendered_page =~ s/<nav id="new_link".*?>.*?<\/nav>//sig;
+    $rendered_page =~ s/<section id="recent_area".*?><\/section>//si;
+    
     return $rendered_page;
 }
 

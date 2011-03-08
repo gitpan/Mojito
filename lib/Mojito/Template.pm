@@ -1,14 +1,16 @@
 use strictures 1;
-
 package Mojito::Template;
 BEGIN {
-  $Mojito::Template::VERSION = '0.05';
+  $Mojito::Template::VERSION = '0.06';
 }
 use Moo;
+use Mojito::Model::Config;
+use Cwd qw/ abs_path /;
+use Dir::Self;
 use Data::Dumper::Concise;
 
-# TODO - MOST DO: Make this alias where Mojito/files ends up.
-my $base_URL = 'http://localhost/mojito/';
+my $config = Mojito::Model::Config->new->config;
+my $static_url = $config->{static_url};
 
 has 'template' => (
     is      => 'rw',
@@ -28,18 +30,18 @@ my $javascripts = [
     'jquery/jquery-1.5.min.js',     'javascript/render_page.js',
     'syntax_highlight/prettify.js', 'jquery/autoresize.jquery.min.js',
 ];
-my @javascripts = map { "<script src=${base_URL}$_></script>" } @{$javascripts};
+my @javascripts = map { "<script src=${static_url}$_></script>" } @{$javascripts};
 
 my $css = [ 'syntax_highlight/prettify.css', 'css/mojito.css', ];
 my @css =
-  map { "<link href=${base_URL}$_ type=text/css rel=stylesheet />" } @{$css};
+  map { "<link href=${static_url}$_ type=text/css rel=stylesheet />" } @{$css};
 
 my $js_css = join "\n", @javascripts, @css;
 
 sub _build_template {
     my $self = shift;
 
-    my $base_url = $self->base_url;
+    my $base_url  = $self->base_url;
     my $edit_page = <<"END_HTML";
 <!doctype html>
 <html> 
@@ -53,7 +55,7 @@ $js_css
 <body class="html_body">
 <header>
 <nav id="edit_link" class="edit_link"></nav>
-<nav id="new_link" class="new_link"> <a href=/page>New</a></nav>
+<nav id="new_link" class="new_link"> <a href=${base_url}page>New</a></nav>
 </header>
 <article id="body_wrapper">
 <section id="edit_area">
@@ -81,7 +83,7 @@ END_HTML
 sub _build_home_page {
     my $self = shift;
 
-    my $base_url = $self->base_url;
+    my $base_url  = $self->base_url;
     my $home_page = <<"END_HTML";
 <!doctype html>
 <html> 
@@ -119,7 +121,7 @@ Get the contents of the edit page proper given the starting template and some da
 
 sub fillin_edit_page {
     my ( $self, $page_source, $page_view, $mongo_id ) = @_;
-    
+
     my $output   = $self->template;
     my $base_url = $self->base_url;
     $output =~

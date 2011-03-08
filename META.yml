@@ -19,8 +19,10 @@ meta-spec:
   version: 1.4
 name: Mojito
 requires:
+  Cwd: 0
   Data::Dumper::Concise: 0
   Digest::MD5: 0
+  Dir::Self: 0
   HTML::Strip: 0
   HTML::Zoom: 0
   List::Util: 0
@@ -37,4 +39,4 @@ requires:
   parent: 0
   perl: 5.010
   strictures: 1
-version: 0.05
+version: 0.06

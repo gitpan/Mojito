@@ -1,6 +1,8 @@
 #!/usr/bin/env perl
 use Web::Simple 'MojitoApp';
+use lib '../lib';
 use Mojito;
+use Mojito::Auth;
 use JSON;
 
 use Data::Dumper::Concise;
@@ -8,7 +10,6 @@ use Data::Dumper::Concise;
 {
     package MojitoApp;
     use Plack::Builder;
-    use Mojito::Auth;
     
     sub dispatch_request {
         my ( $self, $env ) = @_;
@@ -17,46 +18,40 @@ use Data::Dumper::Concise;
         # A Benchmark URI
         sub (GET + /bench ) {
             my ($self) = @_;
-            
             my $rendered_content = $mojito->bench;
-
             [ 200, [ 'Content-type', 'text/html' ], [$rendered_content] ];
           },
 
           # PRESENT CREATE Page Form
           sub (GET + /page ) {
             my ($self) = @_;
-
             my $output = $mojito->fillin_create_page;
-
             [ 200, [ 'Content-type', 'text/html' ], [$output] ];
           },
 
           # CREATE New Page, redirect to Edit Page mode
           sub (POST + /page + %* ) {
             my ( $self, $params ) = @_;
-
             my $redirect_url = $mojito->create_page($params);
-
             [ 301, [ Location => $redirect_url ], [] ];
           },
 
           # VIEW a Page
           sub (GET + /page/* ) {
             my ( $self, $id ) = @_;
-
             my $rendered_page = $mojito->view_page( { id => $id } );
-
             [ 200, [ 'Content-type', 'text/html' ], [$rendered_page] ];
           },
+        
+        sub (GET + /public/page/* ) {
+            my ($self, $id) = @_;
+            [ 200, [ 'Content-type', 'text/html' ], [ $mojito->view_page_public({id => $id})] ];
+        },
 
           # LIST Pages in chrono order
           sub (GET + /recent ) {
             my ($self) = @_;
-
-            my $want_delete_link = 1;
-            my $links = $mojito->get_most_recent_links($want_delete_link);
-
+            my $links = $mojito->get_most_recent_links({want_delete_link => 1});
             [ 200, [ 'Content-type', 'text/html' ], [$links] ];
           },
 
@@ -73,9 +68,7 @@ use Data::Dumper::Concise;
           # Present UPDATE Page Form
           sub (GET + /page/*/edit ) {
             my ( $self, $id ) = @_;
-
             my $output = $mojito->edit_page_form( { id => $id } );
-
             [ 200, [ 'Content-type', 'text/html' ], [$output] ];
           },
 
@@ -102,13 +95,12 @@ use Data::Dumper::Concise;
 
           sub (GET + /) {
             my ($self) = @_;
-
-            my $output = $mojito->home_page;
-            my $links = $mojito->get_most_recent_links;
-            $output =~
-s/(<section\s+id="recent_area".*?>)<\/section>/$1${links}<\/section>/si;
-
-            [ 200, [ 'Content-type', 'text/html' ], [$output] ];
+            [ 200, [ 'Content-type', 'text/html' ], [$mojito->view_home_page] ];
+          },
+          
+          sub (GET + /public/feed/*) {
+            my ( $self, $feed ) = @_;
+            [ 200, [ 'Content-type', 'text/html' ], [$mojito->get_feed_links($feed)] ];
           },
 
           sub (GET) {
@@ -126,7 +118,6 @@ s/(<section\s+id="recent_area".*?>)<\/section>/$1${links}<\/section>/si;
         my $app = $self->$orig(@_); 
         builder {
             enable "+Mojito::Middleware";
-           # enable "Auth::Basic", authenticator => \&Mojito::Auth::authen_cb;
             enable_if { $_[0]->{PATH_INFO} !~ m/^\/(?:public|favicon.ico)/ }
               "Auth::Digest",
               realm => "Mojito", 
