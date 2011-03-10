@@ -1,9 +1,10 @@
 use strictures 1;
 package Mojito;
 BEGIN {
-  $Mojito::VERSION = '0.06';
+  $Mojito::VERSION = '0.07';
 }
 use Moo;
+BEGIN { require 5.010001; }
 
 use Data::Dumper::Concise;
 

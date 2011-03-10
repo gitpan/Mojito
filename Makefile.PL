@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-BEGIN { require 5.010; }
+BEGIN { require 5.010001; }
 
 use ExtUtils::MakeMaker 6.31;
 
@@ -14,6 +14,11 @@ my %WriteMakefileArgs = (
   'BUILD_REQUIRES' => {
     'English' => '0',
     'FindBin' => '0',
+    'HTTP::Request' => '0',
+    'HTTP::Request::Common' => '0',
+    'Plack::Middleware::Auth::Digest' => '0',
+    'Plack::Test' => '0',
+    'Plack::Util' => '0',
     'Test::Deep' => '0',
     'Test::Differences' => '0',
     'Test::Exception' => '0',
@@ -47,7 +52,7 @@ my %WriteMakefileArgs = (
     'parent' => '0',
     'strictures' => '1'
   },
-  'VERSION' => '0.06',
+  'VERSION' => '0.07',
   'test' => {
     'TESTS' => 't/*.t'
   }

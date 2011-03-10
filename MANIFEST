@@ -4,9 +4,9 @@ MANIFEST
 META.yml
 Makefile.PL
 README
-app/dancer.psgi
-app/mojito.psgi
-app/mojo.psgi
+app/dancer.pl
+app/mojito.pl
+app/mojo.pl
 app/tatsumaki.psgi
 bench/edit_page.t
 bench/konichiwa.psgi
@@ -42,6 +42,7 @@ lib/Mojito/conf/mojito_local.conf
 script/add_user.pl
 script/list_feeds_for.pl
 script/wtf-gi.pl
+t/app.t
 t/author-critic.t
 t/build_page_structure.t
 t/build_sections.t

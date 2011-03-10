@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Auth;
 BEGIN {
-  $Mojito::Auth::VERSION = '0.06';
+  $Mojito::Auth::VERSION = '0.07';
 }
 use Moo;
 use Digest::MD5;
@@ -81,7 +81,7 @@ sub get_password_for {
 
 =head2 get_HA1_for
 
-Given a username, return their password.
+Given a username, return their HA1 := md5_hex("$username:$ream:$password")
 
 =cut
 

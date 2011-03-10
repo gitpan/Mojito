@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Role::Config;
 BEGIN {
-  $Mojito::Role::Config::VERSION = '0.06';
+  $Mojito::Role::Config::VERSION = '0.07';
 } 
 use Moo::Role;
 use Mojito::Types;
