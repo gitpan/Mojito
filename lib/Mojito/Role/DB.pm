@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Role::DB;
 BEGIN {
-  $Mojito::Role::DB::VERSION = '0.07';
+  $Mojito::Role::DB::VERSION = '0.08';
 }
 use Moo::Role;
 use MongoDB;
@@ -39,12 +39,12 @@ sub _build_conn {
 
 sub _build_db  {
     my $self = shift;
-    my $db_name = $self->db_name; 
+    my $db_name = $self->db_name;
     $self->conn->${db_name};
 }
 sub _build_collection  {
     my $self = shift;
-    my $collection_name = $self->collection_name; 
+    my $collection_name = $self->collection_name;
     $self->db->${collection_name};
 }
 1;

@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page::Parse;
 BEGIN {
-  $Mojito::Page::Parse::VERSION = '0.07';
+  $Mojito::Page::Parse::VERSION = '0.08';
 }
 use 5.010;
 use Moo;
@@ -75,7 +75,6 @@ sub has_nested_section {
     my ($self) = @_;
 
     my $section_open_regex  = $self->section_open_regex;
-    my $section_close_regex = $self->section_close_regex;
 
     #die "Got no page" if !$self->page;
     my @stuff_between_section_opens =
@@ -84,7 +83,6 @@ sub has_nested_section {
     # If when find a section ending tag in the middle of the two consecutive
     # opening section tags then we know first section has been closed and thus
     # does NOT contain a nested section.
-    my $has_nested_section = 0;
     foreach my $tweener (@stuff_between_section_opens) {
         if ( $tweener =~ m/<\/sx>/ ) {
 
@@ -118,7 +116,6 @@ sub add_implicit_sections {
 
     my $page                = $self->page;
     my $section_open_regex  = $self->section_open_regex;
-    my $section_close_regex = $self->section_close_regex;
 
     # look behinds need a fixed distance.  Let's provide them one by collapsing
     # whitespace in just the right spot, betweeen <sx and c=

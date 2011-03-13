@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page::Render;
 BEGIN {
-  $Mojito::Page::Render::VERSION = '0.07';
+  $Mojito::Page::Render::VERSION = '0.08';
 }
 use 5.010;
 use Moo;
@@ -48,7 +48,7 @@ sub render_sections {
         push @formatted_document_sections, $formatted_section;
     }
 
-    return ( \@raw_document_sections, \@formatted_document_sections );
+    return \@formatted_document_sections;
 }
 
 =head2 render_page
@@ -64,21 +64,21 @@ sub render_page {
     my $base_url = $self->base_url;
     $tmpl->base_url($base_url);
     my $page = $tmpl->template;
-    
+
     if (my $title = $doc->{title}) {
        $page =~ s/<title>.*?<\/title>/<title>${title}<\/title>/si;
     }
-    
+
     my $rendered_body = $self->render_body($doc);
     # Remove edit area
     $page =~ s/(<section id="edit_area"[^>]*>).*?(<\/section>)//si;
     # Insert rendered page into view area
     $page =~ s/(<section id="view_area"[^>]*>).*?(<\/section>)/$1${rendered_body}$2/si;
-    
+
     if ( my $id = $doc->{'_id'} ) {
         $page =~ s/(<nav id="edit_link"[^>]*>).*?(<\/nav>)/$1<a href="${base_url}page\/${id}\/edit">Edit<\/a>$2/sig;
     }
-    
+
     return $page;
 }
 
@@ -92,7 +92,7 @@ TODO: Do we really need to return two things when only one is used?
 sub render_body {
     my ( $self, $doc ) = @_;
 
-    my ( $raw_sections, $rendered_sections ) = $self->render_sections($doc);
+    my $rendered_sections = $self->render_sections($doc);
     my $rendered_body = join "\n", @{$rendered_sections};
 
     $rendered_body = Mojito::Filter::Shortcuts::expand_shortcuts($rendered_body);
@@ -150,7 +150,7 @@ sub format_for_web {
                 }
                 default {
                     # Let it ride (HTML)
-                }        
+                }
             }
         }
         when (/^HTML$/i) {
@@ -196,19 +196,37 @@ sub pod2html {
 =head2 intro_text
 
 Extract the beginning text substring.
-TODO: extract first 3 words intstead of a substring to break on word boundaries.
 
 =cut
 
 sub intro_text {
     my ( $self, $html ) = @_;
-    my ($first_line) = $html =~ m/(.*?)\n/;
-    return substr( $self->stripper->parse($first_line), 0, 24 );
+
+    my $title_length_limit = 24;
+    my ($title) = $html =~ m/(.*)?\n?/;
+    return '' if !$title;
+    $title = $self->stripper->parse($title);
+    if (length($title) > $title_length_limit) {
+        my @words = split /\s+/, $title;
+        my (@title_words, $title_length);
+        foreach my $word (@words) {
+            if ($title_length + length($word) <= $title_length_limit) {
+              push @title_words, $word;
+              $title_length += length($word);
+            }
+            else {
+              last;
+            }
+        }
+        $title = join ' ', @title_words;
+    }
+
+    return $title;
 }
 
 sub _build_stripper {
     my $self = shift;
-    
+
     return HTML::Strip->new();
 }
 

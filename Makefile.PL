@@ -13,9 +13,12 @@ my %WriteMakefileArgs = (
   'AUTHOR' => 'Mateu X Hunter <hunter@missoula.org>',
   'BUILD_REQUIRES' => {
     'English' => '0',
+    'File::Find' => '0',
+    'File::Temp' => '0',
     'FindBin' => '0',
     'HTTP::Request' => '0',
     'HTTP::Request::Common' => '0',
+    'JSON' => '0',
     'Plack::Middleware::Auth::Digest' => '0',
     'Plack::Test' => '0',
     'Plack::Util' => '0',
@@ -52,7 +55,7 @@ my %WriteMakefileArgs = (
     'parent' => '0',
     'strictures' => '1'
   },
-  'VERSION' => '0.07',
+  'VERSION' => '0.08',
   'test' => {
     'TESTS' => 't/*.t'
   }

@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Auth;
 BEGIN {
-  $Mojito::Auth::VERSION = '0.07';
+  $Mojito::Auth::VERSION = '0.08';
 }
 use Moo;
 use Digest::MD5;
@@ -61,10 +61,10 @@ The authentication callback used by Plack::Middleware::Authen::Digest.
 sub _build_digest_authen_cb {
     my ($self) = @_;
     my $coderef = sub {
-        my ($username, $env) = @_;
+        my $username = shift;
         return $self->get_HA1_for($username);
     };
-    return $coderef; 
+    return $coderef;
 }
 
 =head2 get_password_for
@@ -81,7 +81,7 @@ sub get_password_for {
 
 =head2 get_HA1_for
 
-Given a username, return their HA1 := md5_hex("$username:$ream:$password")
+Given a username, return their HA1 := md5_hex("$username:$realm:$password")
 
 =cut
 
@@ -99,8 +99,8 @@ Provide the username, realm (default Mojito) and password.
 
 sub add_user {
     my ( $self ) = @_;
-   
-    my @digest_input_parts = qw/ username realm password /;  
+
+    my @digest_input_parts = qw/ username realm password /;
     my $digest_input = join ':', map {$self->$_} @digest_input_parts;
     my $HA1          = Digest::MD5::md5_hex($digest_input);
     my $md5_password = Digest::MD5::md5_hex($self->password);
@@ -134,7 +134,7 @@ Set some things post object construction, pre object use.
 sub BUILD {
     my $self = shift;
 
-    # We use the users collection for Auth stuff.
+    # We use the users collection for Auth stuff
     $self->collection_name('users');
 }
 

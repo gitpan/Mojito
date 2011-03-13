@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Types;
 BEGIN {
-  $Mojito::Types::VERSION = '0.07';
+  $Mojito::Types::VERSION = '0.08';
 }
 use Sub::Quote qw(quote_sub);
 use Scalar::Util;
@@ -80,9 +80,9 @@ An ArrayRef[HashRef] type
 =cut
 
 sub AHRef {  ## no critic
-    quote_sub q{ 
-        die "$_[0] is not an ArrayRef[HashRef]!" 
-          if ((ref($_[0]) ne 'ARRAY') || ( List::Util::first { ref($_) ne 'HASH' } @{$_[0]} )) 
+    quote_sub q{
+        die "$_[0] is not an ArrayRef[HashRef]!"
+          if ((ref($_[0]) ne 'ARRAY') || ( List::Util::first { ref($_) ne 'HASH' } @{$_[0]} ))
     };
 }
 
@@ -93,7 +93,7 @@ A non-reference type
 =cut
 
 sub NoRef () {  ## no critic
-    quote_sub q{ 
+    quote_sub q{
         die "$_[0] is a referernce" if ref($_[0])
     };
 }
@@ -105,7 +105,7 @@ A boolean 1|0 type
 =cut
 
 sub Bool () {  ## no critic
-    quote_sub q{ 
+    quote_sub q{
         die "$_[0] not a Boolean" if ($_[0] != 0 && $_[0] != 1);
     };
 }
