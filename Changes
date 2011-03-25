@@ -1,3 +1,16 @@
+0.09      2011-03-24 22:46:23 America/Denver
+          [Remedies]
+          - Implicit sections properly added
+          
+          [Enchantments]
+          - git is in the house (git backend for revisions and simple search via git grep)
+            ${base_url}search/$search_word is the URI
+          - Multiple wiki language support (textile, markdown, creole)
+
+          [View]
+          - A little style added for forms (via jQuery UI)
+          - recent area style refined
+
 0.08      2011-03-13 13:56:08 America/Denver
           [Tests]
           - @TestingMania passes now except Kwalitee. use strict fails

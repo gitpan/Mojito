@@ -3,6 +3,10 @@
     margin: 5px;
 }
 
+#wiki_language {
+        font-size: 66.7%;
+}
+
 h1 {
     margin-top: 0em;
     padding-top: 0em;
@@ -26,6 +30,7 @@ h1 {
 .view_area_edit_mode {
     float: left;
     margin-left: 2em;
+    padding-left: 1em;
     width: 46%;
 }
 
@@ -38,16 +43,32 @@ h1 {
 
 #recent_area {
     float: right;
-    margin-top: 2em;
+    border-left: 1px dotted #888;
+    padding-left: 0.5em;
+    width: 100%;
+/*    -moz-border-radius: 10px;
+    border-radius: 10px; */
+}
+
+#search_area {
+    float: right;
+    width: 100%;
+    padding-bottom: 0.5em;
+}
+#search_area input{
+    width: 100%;
+}
+#side {
+    float: right;
+    margin-top: 1em;
     margin-left: 1em;
     padding-left: 1em;
     padding-right: 1em;
     width: 20%;
-    border: 1px solid #888;
-    background-color: #cafc97;
+ /*   border-left: 1px dotted #888;
     -moz-border-radius: 10px;
-    border-radius: 10px;
-    font-size: 0.88em;
+    border-radius: 10px;  */
+    font-size: 0.82em;
 }
 
 #edit_link {
@@ -62,4 +83,18 @@ h1 {
 
 nav {
     display: inline;
+}
+
+.list_of_links {
+    padding-bottom: 0.33em;
+}
+
+/* Wrap text in pre's */
+pre.prettyprint {
+    overflow: auto;
+    overflow-x: auto; /* Use horizontal scroller if needed; for Firefox 2, not
+    white-space: pre-wrap; /* css-3 */
+    white-space: -moz-pre-wrap !important; /* Mozilla, since 1999 */
+    word-wrap: break-word; /* Internet Explorer 5.5+ */
+    white-space : normal; /* crucial for IE 6, maybe 7? */
 }

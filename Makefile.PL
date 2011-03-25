@@ -39,8 +39,11 @@ my %WriteMakefileArgs = (
     'Data::Dumper::Concise' => '0',
     'Digest::MD5' => '0',
     'Dir::Self' => '0',
+    'File::Spec' => '0',
+    'Git::Wrapper' => '0',
     'HTML::Strip' => '0',
     'HTML::Zoom' => '0',
+    'IO::File' => '0',
     'List::Util' => '0',
     'MongoDB' => '0',
     'MongoDB::OID' => '0',
@@ -52,10 +55,12 @@ my %WriteMakefileArgs = (
     'Sub::Quote' => '0',
     'Text::Markdown' => '0',
     'Text::Textile' => '0',
+    'Text::WikiCreole' => '0',
+    'Try::Tiny' => '0',
     'parent' => '0',
     'strictures' => '1'
   },
-  'VERSION' => '0.08',
+  'VERSION' => '0.09',
   'test' => {
     'TESTS' => 't/*.t'
   }

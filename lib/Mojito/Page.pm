@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page;
 BEGIN {
-  $Mojito::Page::VERSION = '0.08';
+  $Mojito::Page::VERSION = '0.09';
 }
 use Moo;
 use Sub::Quote qw(quote_sub);
@@ -25,6 +25,7 @@ An object to delegate to the Page family of objects.
 use Mojito::Page::Parse;
 use Mojito::Page::Render;
 use Mojito::Page::CRUD;
+use Mojito::Page::Git;
 use Mojito::Template;
 use Mojito::Model::Link;
 
@@ -95,6 +96,19 @@ has linker => (
     writer => '_build_link',
 );
 
+has gitter => (
+    is      => 'ro',
+    isa     => sub { die "Need a PageGit object" unless $_[0]->isa('Mojito::Page::Git') },
+    handles => [
+        qw(
+            commit_page
+            rm_page
+            diff_page
+            search_word
+          )
+    ],
+    writer => '_build_gitter',
+);
 =head1 Methods
 
 =head2 BUILD
@@ -111,6 +125,7 @@ sub BUILD {
     $self->_build_parse(Mojito::Page::Parse->new($constructor_args_href));
     $self->_build_render(Mojito::Page::Render->new($constructor_args_href));
     $self->_build_edit(Mojito::Page::CRUD->new( $constructor_args_href));
+    $self->_build_gitter(Mojito::Page::Git->new( $constructor_args_href));
     $self->_build_template(Mojito::Template->new( $constructor_args_href));
     $self->_build_link(Mojito::Model::Link->new( $constructor_args_href));
 

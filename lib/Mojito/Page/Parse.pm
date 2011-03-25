@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page::Parse;
 BEGIN {
-  $Mojito::Page::Parse::VERSION = '0.08';
+  $Mojito::Page::Parse::VERSION = '0.09';
 }
 use 5.010;
 use Moo;
@@ -9,6 +9,7 @@ use Mojito::Types;
 
 use Data::Dumper::Concise;
 
+# This is the page source
 has 'page' => (
     is       => 'rw',
     isa      => Mojito::Types::NoRef,
@@ -35,9 +36,9 @@ has 'page_structure' => (
 #      sub { return substr( $_[0]->stripper->parse( $_[0]->page ), 0, 24 ); },
 #);
 has 'default_format' => (
-    is => 'ro',
-
-    #    isa     => 'Str',
+    is => 'rw',
+    isa     => Mojito::Types::NoRef,
+    lazy => 1,
     default => sub { 'HTML' },
 );
 has 'created' => (
@@ -52,7 +53,7 @@ has 'last_modified' => (
 has 'section_open_regex' => (
     is      => 'ro',
     isa     => Mojito::Types::RegexpRef,
-    default => sub { qr/<sx c=(?:'|")?\w+(?:'|")?[^>]*?>/ },
+    default => sub { qr/<sx\.[^>]+>/ },
 );
 has 'section_close_regex' => (
     is      => 'ro',
@@ -115,26 +116,22 @@ sub add_implicit_sections {
     my ($self) = @_;
 
     my $page                = $self->page;
-    my $section_open_regex  = $self->section_open_regex;
-
-    # look behinds need a fixed distance.  Let's provide them one by collapsing
-    # whitespace in just the right spot, betweeen <sx and c=
-    $page =~ s/(<sx\s+c=)/<sx c=/sgi;
 
     # Add implicit sections in between explicit sections (if needed)
-    $page =~
-s/(<\/sx>)(.*?\S.*?)($section_open_regex)/$1\n<sx c=Implicit>$2<\/sx>\n$3/sig;
+    if ( $page =~ m/<\/sx>(?!\s*<sx\.).*?<sx\./si ) {
+        $page =~ s/<\/sx>(?!\s*<sx\.)(.*?)<sx\./<\/sx>\n<sx.Implicit>$1<\/sx>\n<sx./sig;
+    }
 
     # Add implicit section at the beginning (if needed)
-    $page =~ s/(?<!<sx c=)(<sx c=)/<\/sx>\n$1/si;
-    $page = "\n<sx c=Implicit>\n${page}";
+    $page =~ s/(?<!<sx\.\w)(<sx\.\w)/<\/sx>\n$1/si;
+    $page = "\n<sx.Implicit>\n${page}";
 
     # Add implicit section at the end (if needed)
-    $page =~ s/(<\/sx>)(?!.*<\/sx>)/$1\n<sx c=Implicit>/si;
+    $page =~ s/(<\/sx>)(?!.*<\/sx>)/$1\n<sx.Implicit>/si;
     $page .= '</sx>';
 
     # cut empty implicits
-    $page =~ s/<sx c=Implicit>\s*<\/sx>//sig;
+    $page =~ s/<sx\.Implicit>\s*<\/sx>//sig;
 
     if ( $self->debug ) {
         say "PREMATCH: ", ${^PREMATCH};
@@ -156,12 +153,11 @@ sub parse_sections {
     my ( $self, $page ) = @_;
 
     my $sections;
-    my @sections = $page =~ m/(<sx c=[^>]+>.*?<\/sx>)/sig;
+    my @sections = $page =~ m/(<sx\.[^>]+>.*?<\/sx>)/sig;
     foreach my $sx (@sections) {
 
         # Extract class and content
-        my ( $class, $content ) =
-          $sx =~ m/<sx c=(?:'|")?(\w+)?(?:'|")?>(.*)?<\/sx>/si;
+        my ( $class, $content ) = $sx =~ m/<sx\.([^>]+)>(.*)?<\/sx>/si;
         push @{$sections}, { class => $class, content => $content };
     }
 

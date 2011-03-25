@@ -60,9 +60,21 @@ post '/page/:id/edit' => sub {
     $_[0]->redirect_to($_[0]->mojito->update_page($params));
 };
 
+get '/search/:word' => sub {
+    my ($self) = (shift);
+    my $params;
+    $params->{word} = $self->param('word');
+    $self->render( text => $self->mojito->search($params) );
+};
+
 get '/page/:id/delete' => sub {
     $_[0]->redirect_to( $_[0]->mojito->delete_page({ id => $_[0]->param('id') }) );
 };
+
+get '/page/:id/diff' => sub {
+    $_[0]->render( text => $_[0]->mojito->view_page_diff( { id => $_[0]->param('id') } ) );
+};
+
 
 get '/recent' => sub {
     $_[0]->render( text => $_[0]->mojito->get_most_recent_links({want_delete_link => 1}) );

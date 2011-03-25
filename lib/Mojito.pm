@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito;
 BEGIN {
-  $Mojito::VERSION = '0.08';
+  $Mojito::VERSION = '0.09';
 }
 use Moo;
 
@@ -37,6 +37,8 @@ sub create_page {
     $self->parser->page($params->{content});
 
     my $page_struct = $self->page_structure;
+    # Load some parts to the page_struct
+    $page_struct->{default_format} = $params->{wiki_language};
     $page_struct->{page_html} = $self->render_page($page_struct);
     $page_struct->{body_html} = $self->render_body($page_struct);
     $page_struct->{title}     = $self->intro_text( $page_struct->{body_html} );
@@ -55,6 +57,7 @@ sub preview_page {
     my ( $self, $params ) = @_;
 
     $self->parser->page($params->{content});
+    $self->parser->default_format($params->{wiki_language});
     my $page_struct = $self->page_structure;
     if (   $params->{extra_action}
         && ( $params->{extra_action} eq 'save' )
@@ -90,6 +93,7 @@ sub update_page {
     my ( $self, $params ) = @_;
 
     $self->parser->page($params->{content});
+    $self->parser->default_format($params->{wiki_language});
     my $page = $self->page_structure;
 
     # Store rendered parts as well.  May as well until proven wrong.
@@ -104,9 +108,10 @@ sub update_page {
         $page->{feeds} = [@feeds];
     }
 
-    # Save page
+    # Save page to db
     $self->update( $params->{id}, $page );
-
+    # Commit revison to git repo
+    $self->commit_page($page, $params->{id});
     return $self->base_url . 'page/' . $params->{id};
 }
 
@@ -123,7 +128,7 @@ sub edit_page_form {
     my $rendered_content = $self->render_body($page);
     my $source           = $page->{page_source};
 
-    return $self->fillin_edit_page( $source, $rendered_content, $params->{id} );
+    return $self->fillin_edit_page( $source, $rendered_content, $params->{id}, $page->{default_format} );
 }
 
 =head2 view_page
@@ -193,22 +198,89 @@ sub view_home_page {
     return $output;
 }
 
+=head2 view_page_diff
+
+View the diff of a page.
+
+=cut
+
+sub view_page_diff {
+    my ( $self, $params ) = @_;
+
+    my $head = '
+<!doctype html>
+<html>
+<head>
+  <meta charset=utf-8>
+  <meta http-equiv="powered by" content="Mojito development version" />
+  <title>Mojito Syntax Highlighting - via JavaScript</title>
+<script src=http://missoula.org/mojito/jquery/jquery_min.js></script>
+<script src=http://missoula.org/mojito/javascript/render_page.js></script>
+<script src=http://missoula.org/mojito/javascript/style.js></script>
+<script src=http://missoula.org/mojito/syntax_highlight/prettify.js></script>
+<script src=http://missoula.org/mojito/jquery/autoresize_min.js></script>
+<script src=http://missoula.org/mojito/jquery/jquery-ui-1.8.11.custom.min.js></script>
+<script src=http://missoula.org/mojito/SHJS/sh_main.min.js></script>
+<script src=http://missoula.org/mojito/SHJS/sh_diff.min.js></script>
+<link href=http://missoula.org/mojito/css/ui-lightness/jquery-ui-1.8.11.custom.css type=text/css rel=stylesheet />
+<link href=http://missoula.org/mojito/syntax_highlight/prettify.css type=text/css rel=stylesheet />
+<link href=http://missoula.org/mojito/SHJS/sh_rand01.min.css type=text/css rel=stylesheet />
+<link href=http://missoula.org/mojito/css/mojito.css type=text/css rel=stylesheet />
+
+</head>
+<body class="html_body">
+';
+    my $diff = '<pre class="sh_diff">' . "\n" . $self->diff_page($params->{id}) . "\n</pre>";
+    my $foot = "\n</body></html>";
+    return $head . $diff . $foot;
+}
+
+=head2 search
+
+Search the documents for a single word.
+
+=cut
+
+sub search {
+    my ( $self, $params ) = @_;
+
+    my $base_url = $self->base_url;
+    my $hit_hashref= $self->search_word($params->{word});
+    return "No matches for: <b>" . $params->{word} . '</b>' if !scalar keys %{$hit_hashref};
+    # Get the full page and extract the title for display.
+    # Rework hit_has from HashRef to HashRef[HashRef] so we can store both hit counts and a title.
+    my $link_data = {};
+    foreach my $page_id (keys %{$hit_hashref}) {
+        my $page = $self->read($page_id);
+        $link_data->{$page_id}->{title} = $page->{title};
+        $link_data->{$page_id}->{times_found} = $hit_hashref->{$page_id};
+    }
+    my @search_hits = map { "<a href='${base_url}page/$_'>$link_data->{$_}->{title} <span style='font-size: 0.82em;'>($link_data->{$_}->{times_found})</span></a>" }
+      sort {$link_data->{$b}->{times_found} <=> $link_data->{$a}->{times_found}} keys %{$link_data};
+    return join "<br />\n", @search_hits;
+}
+
 =head2 delete_page
 
-Delet a page given a page id.
+Given a page id:
+* Delete it from the mongo DB
+* Remove it from the git repo
 Return the URL to recent (maybe home someday?)
 
 =cut
 
 sub delete_page {
     my ( $self, $params ) = @_;
+
     $self->delete($params->{id});
+    $self->rm_page($params->{id});
+
     return $self->base_url . 'recent';
 }
 
 =head2 bench
 
-A path for benchmarking to get an basic idea of peformance.
+A path for benchmarking to get an basic idea of performance.
 
 =cut
 
@@ -266,8 +338,8 @@ Mojito is a web document system that allows one to author web pages.
 It has been inspired by MojoMojo which is a mature, stable, responsive and
 feature rich wiki system.  Check MojoMojo out if you're looking for an enterprise
 grade wiki.  Mojito is not attempting to be a wiki, but rather its initial
-goal is to allow an individuals to author HTML5 compliant documents that could be for
-personal or public consumption.
+goal is to enable individuals to easily author HTML5 compliant documents
+whether for for personal or public consumption.
 
 =head1 Goals
 
@@ -283,8 +355,8 @@ Some goals and guidelines are:
 
 =head1 Current Limitations
 
-    * No Search
-    * No revision history (only 1 version any any page)
+    * Single Word Search
+    * revision history doesn't have a web interface yet
 
 =head1 Authors
 

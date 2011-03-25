@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Template::Role::CSS;
 BEGIN {
-  $Mojito::Template::Role::CSS::VERSION = '0.08';
+  $Mojito::Template::Role::CSS::VERSION = '0.09';
 }
 use Moo::Role;
 use Mojito::Types;
@@ -17,7 +17,9 @@ has css => (
 
 sub _build_css {
     [
+      'css/ui-lightness/jquery-ui-1.8.11.custom.css',
       'syntax_highlight/prettify.css',
+      'SHJS/sh_rand01.min.css',
       'css/mojito.css',
     ];
 }

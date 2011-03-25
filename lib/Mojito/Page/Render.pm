@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page::Render;
 BEGIN {
-  $Mojito::Page::Render::VERSION = '0.08';
+  $Mojito::Page::Render::VERSION = '0.09';
 }
 use 5.010;
 use Moo;
@@ -9,9 +9,12 @@ use Mojito::Template;
 use Mojito::Filter::Shortcuts;
 use Text::Textile qw(textile);
 use Text::Markdown;
+use Text::WikiCreole;
 use Pod::Simple::XHTML;
 use HTML::Strip;
 use Data::Dumper::Concise;
+
+with('Mojito::Filter::Shortcuts');
 
 my $textile  = Text::Textile->new;
 my $markdown = Text::Markdown->new;
@@ -30,21 +33,19 @@ has 'stripper' => (
 =head2 render_sections
 
 Turn the sections into something viewable in a HTML browser.
+Be mindful of the section class which we'll use for formatting purposes.
 
 =cut
 
 sub render_sections {
     my ( $self, $doc ) = @_;
 
-    my ( @raw_document_sections, @formatted_document_sections );
+    my ( @formatted_document_sections );
     foreach my $section ( @{ $doc->{sections} } ) {
-
         my $from_format = $section->{class} || $doc->{default_format};
+        $from_format = $doc->{default_format} if ($section->{class} eq 'Implicit');
         my $to_format = 'HTML';
-        my ( $raw_section, $formatted_section ) =
-          $self->format_content( $section->{content}, $from_format,
-            $to_format );
-        push @raw_document_sections,       $raw_section;
+        my $formatted_section = $self->format_content( $section->{content}, $from_format, $to_format );
         push @formatted_document_sections, $formatted_section;
     }
 
@@ -95,7 +96,7 @@ sub render_body {
     my $rendered_sections = $self->render_sections($doc);
     my $rendered_body = join "\n", @{$rendered_sections};
 
-    $rendered_body = Mojito::Filter::Shortcuts::expand_shortcuts($rendered_body);
+    $rendered_body = $self->expand_shortcuts($rendered_body);
     return $rendered_body;
 }
 
@@ -109,13 +110,13 @@ NOTE: We return both the non modified content, and the converted content.
 
 sub format_content {
     my ( $self, $content, $from_format, $to_format ) = @_;
-    if ( !$content ) { die "no content going to format: $to_format"; }
+    if ( !$content ) { die "Error: no content going to format: $to_format"; }
     my $formatted_content;
     if ( $to_format eq 'HTML' ) {
         $formatted_content = $self->format_for_web( $content, $from_format );
     }
 
-    return ( $content, $formatted_content );
+    return $formatted_content;
 }
 
 =head2 format_for_web
@@ -134,43 +135,55 @@ sub format_for_web {
 # We could provide a shortcut syntax such: <sx c=h> to represent <pre class="prettyprint">
     my $formatted_content = $content;
     given ($from_language) {
-        when (/^Implicit$/i) {
-
-            # Use default format for the page.
-            # Pretend it's just Textile for now
-            # my $formatter = Formatter::HTML::Textile->format($content);
-            #            $formatted_content = $formatter->fragment;
-            my $default_format = 'textile';
-            given ($default_format) {
-                when (/textile/) {
-                    $formatted_content = $textile->process($content);
-                }
-                when (/markdown/) {
-                    $formatted_content = $markdown->markdown($content);
-                }
-                default {
-                    # Let it ride (HTML)
-                }
-            }
-        }
         when (/^HTML$/i) {
-
             # pass HTML through as is
         }
+
+        when (/^POD$/i) {
+            $formatted_content = $self->pod2html($content);
+        }
+        when (/^textile$/i) {
+            $formatted_content = $textile->process($content);
+        }
+        when (/^markdown$/i) {
+            $formatted_content = $markdown->markdown($content);
+        }
+        when (/^creole$/i) {
+            $formatted_content = creole_parse($content);
+        }
+
         when (/^h$/i) {
 
             # Let's do some highlighting
             $formatted_content = "<pre class='prettyprint'>${content}</pre>";
         }
-        when (/^POD$/i) {
-
-            #warn "Processing POD";
-            $formatted_content = $self->pod2html($content);
+        # More highlighting - language specific
+        when (/^perl$/i) {
+            $formatted_content = "<pre class='sh_perl'>$content</pre>";
+        }
+        when (/^js$/i) {
+            $formatted_content = "<pre class='sh_javascript'>$content</pre>";
+        }
+        when (/^css$/i) {
+            $formatted_content = "<pre class='sh_css'>$content</pre>";
+        }
+        when (/^sql$/i) {
+            $formatted_content = "<pre class='sh_sql'>$content</pre>";
+        }
+        when (/^sh$/i) {
+            $formatted_content = "<pre class='sh_sh'>$content</pre>";
+        }
+        when (/^diff$/i) {
+            $formatted_content = "<pre class='sh_diff'>$content</pre>";
+        }
+        when (/^sh_html$/i) {
+            $formatted_content = "<pre class='sh_html'>$content</pre>";
         }
         default {
+            # pass HTML through as is
         }
     }
-    return ( $content, $formatted_content );
+    return $formatted_content;
 }
 
 =head2 pod2html
@@ -202,13 +215,14 @@ Extract the beginning text substring.
 sub intro_text {
     my ( $self, $html ) = @_;
 
-    my $title_length_limit = 24;
+    my $title_length_limit = 64;
     my ($title) = $html =~ m/(.*)?\n?/;
     return '' if !$title;
     $title = $self->stripper->parse($title);
     if (length($title) > $title_length_limit) {
         my @words = split /\s+/, $title;
-        my (@title_words, $title_length);
+        my @title_words;
+        my $title_length = 0;
         foreach my $word (@words) {
             if ($title_length + length($word) <= $title_length_limit) {
               push @title_words, $word;
@@ -219,6 +233,7 @@ sub intro_text {
             }
         }
         $title = join ' ', @title_words;
+        $title .= ' ...';
     }
 
     return $title;
