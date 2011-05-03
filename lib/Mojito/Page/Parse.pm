@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page::Parse;
 BEGIN {
-  $Mojito::Page::Parse::VERSION = '0.09';
+  $Mojito::Page::Parse::VERSION = '0.10';
 }
 use 5.010;
 use Moo;
@@ -65,6 +65,22 @@ has 'debug' => (
     isa     => Mojito::Types::Bool,
     default => sub { 0 },
 );
+has 'messages' => (
+    is => 'rw',
+    isa => Mojito::Types::ArrayRef,
+    default => sub { [] },
+);
+has 'message_string' => (
+    is => 'ro',
+    isa => Mojito::Types::NoRef(),
+    lazy => 1,
+    builder => '_build_message_string',
+);
+sub _build_message_string {
+    my ($self) = (shift);
+    return join ', ', @{$self->messages} if $self->messages;
+    return;
+}
 
 =head2 has_nested_section
 
@@ -79,7 +95,7 @@ sub has_nested_section {
 
     #die "Got no page" if !$self->page;
     my @stuff_between_section_opens =
-      $self->page =~ m/${section_open_regex}(.*?)${section_open_regex}/sg;
+      $self->page =~ m/${section_open_regex}(.*?)${section_open_regex}/si;
 
     # If when find a section ending tag in the middle of the two consecutive
     # opening section tags then we know first section has been closed and thus
@@ -173,24 +189,14 @@ Wrap up the getting of sections process.
 sub build_sections {
     my $self = shift;
 
-# TODO: Deal with nested sections gracefully.
+    # Deal with nested sections gracefully by adding a message
+    # to bubble up to the view and display in the #message_area.
     if ( $self->has_nested_section ) {
-#        warn "page: ", $self->page;
-        die "Damn: Haz Nested Sections.  Nested sections are not supported";
+        $self->messages( [ @{$self->messages}, 'haz nested sexes'] );
+    }
+    my $page = $self->add_implicit_sections;
 
-# return Array[]HashRef] with error when we have a nested <sx>
-#        return [
-#            {
-#                status => 'ERROR',
-#                error_message =>
-#                  'We have at least one nested section which is not supported.'
-#            }
-#        ];
-    }
-    else {
-        my $page = $self->add_implicit_sections;
-        return $self->parse_sections($page);
-    }
+    return $self->parse_sections($page);
 }
 
 =head2 build_page_structure
@@ -202,7 +208,7 @@ It's just an href that we'll persist as a Mongo document.
 sub build_page_structure {
     my $self = shift;
 
-    return {
+    my $return = {
         sections       => $self->sections,
 #        title          => $self->title,
         default_format => $self->default_format,
@@ -210,7 +216,12 @@ sub build_page_structure {
         #        created        => '1234567890',
         #        last_modified  => time(),
         page_source    => $self->page,
+
+        # Set the message last to pick any builder message above
+        # e.g. ->sections can set a 'nested sections' message.
+        message        => $self->message_string,
     };
+    return $return;
 }
 
 1

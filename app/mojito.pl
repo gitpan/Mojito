@@ -51,7 +51,7 @@ use Data::Dumper::Concise;
           # LIST Pages in chrono order
           sub (GET + /recent ) {
             my ($self) = @_;
-            my $links = $mojito->get_most_recent_links({want_delete_link => 1});
+            my $links = $mojito->recent_links;
             [ 200, [ 'Content-type', 'text/html' ], [$links] ];
           },
 
@@ -79,19 +79,21 @@ use Data::Dumper::Concise;
             $params->{id} = $id;
             my $redirect_url = $mojito->update_page($params);
 
-            return [ 301, [ Location => $redirect_url ], [] ];
+            [ 301, [ Location => $redirect_url ], [] ];
           },
 
           # DELETE a Page
           sub (GET + /page/*/delete ) {
             my ( $self, $id ) = @_;
-            return [ 301, [ Location => $mojito->delete_page({id => $id}) ], [] ];
+            [ 301, [ Location => $mojito->delete_page({id => $id}) ], [] ];
           },
 
-          # Diff a Page
-          sub (GET + /page/*/diff ) {
-            my ( $self, $id ) = @_;
-            my $output = $mojito->view_page_diff({id => $id});
+          # Diff a Page: $m and $n are the number of ^ we'll use from HEAD.
+          # e.g diff/3/1 would mean git diff HEAD^^^ HEAD^ $page_id
+          sub (GET + /page/*/diff/*/* ) {
+            my ( $self, $id, $m, $n ) = @_;
+            
+            my $output = $mojito->view_page_diff({id => $id, m => $m, n => $n});
             [ 200, [ 'Content-type', 'text/html' ], [$output] ];
           },
 
@@ -106,6 +108,49 @@ use Data::Dumper::Concise;
               my ($self, $params) = @_;
               my $output = $mojito->search($params);
               [ 200, ['Content-type', 'text/html'], [$output] ];
+          },
+
+          sub ( GET + /collect ) {
+              my ($self, ) = @_;
+              my $output = $mojito->collect_page_form();
+              [ 200, ['Content-type', 'text/html'], [$output] ];
+          },
+
+          sub ( POST + /collect + %* ) {
+              my ($self, $params) = @_;
+              my $redirect_url = $mojito->collect($params);
+              [ 301, [ Location => $redirect_url ], [] ];
+          },
+
+          sub ( GET + /collections ) {
+              my ($self, $params) = @_;
+              my $output = $mojito->collections_index();
+              [ 200, ['Content-type', 'text/html'], [$output] ];
+          },
+          sub ( GET + /collection/* ) {
+              my ($self, $collection_id) = @_;
+              my $output = $mojito->collection_page({id => $collection_id});
+              [ 200, ['Content-type', 'text/html'], [$output] ];
+          },
+          
+          sub ( GET + /collection/*/sort ) {
+              my ($self, $collection_id) = @_;
+              my $output = $mojito->sort_collection_form({id => $collection_id});
+              [ 200, ['Content-type', 'text/html'], [$output] ];
+          },
+
+          sub ( POST + /collection/*/sort + %* ) {
+              my ($self, $id, $params) = @_;
+              $params->{id} = $id;
+              my $redirect_url = $mojito->sort_collection($params);
+              [ 301, [ Location => $redirect_url ], [] ];
+          },
+
+          sub ( POST + /publish + %* ) {
+              my ($self, $params) = @_;
+              my $response_href = $mojito->publish_page($params);
+              my $JSON_response = JSON::encode_json($response_href);
+              [ 200, [ 'Content-type', 'application/json' ], [$JSON_response] ];
           },
 
           sub (GET + /hola/* ) {
@@ -137,14 +182,15 @@ use Data::Dumper::Concise;
         my ($orig, $self) = (shift, shift);
         my $app = $self->$orig(@_);
         builder {
-            enable "+Mojito::Middleware";
-            enable_if { $ENV{RELEASE_TESTING}; } "+Mojito::Middleware::TestDB";
             enable_if { $_[0]->{PATH_INFO} !~ m/^\/(?:public|favicon.ico)/ }
               "Auth::Digest",
               realm => "Mojito",
               secret => Mojito::Auth::_secret,
               password_hashed => 1,
               authenticator => Mojito::Auth->new->digest_authen_cb;
+            enable "+Mojito::Middleware";
+            enable_if { $ENV{RELEASE_TESTING}; } "+Mojito::Middleware::TestDB";
+
             $app;
         };
     };

@@ -1,3 +1,18 @@
+0.10      2011-05-02 21:27:52 America/Boise
+          [Enchantments]
+          - Collections: creatable, selectable and sortable
+          - arbitrary diff potential
+          - Publish to MojoMojo feature
+          - MojoMojo table of contents support
+          - MojoMojo syntax highlight support (class=prettyprint)
+          
+          [Refinements]
+          - the css of both syntax highlighters: prettyprint and SHJS, has been refined
+          - user name and email added to git commits
+          
+          [Remedies]
+          - preserve title during auto-save
+
 0.09      2011-03-24 22:46:23 America/Denver
           [Remedies]
           - Implicit sections properly added

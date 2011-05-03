@@ -1,7 +1,8 @@
 use strictures 1;
+
 package Mojito::Auth;
 BEGIN {
-  $Mojito::Auth::VERSION = '0.09';
+  $Mojito::Auth::VERSION = '0.10';
 }
 use Moo;
 use Digest::MD5;
@@ -15,29 +16,40 @@ with 'Mojito::Role::DB';
 
 =cut
 
+has 'first_name' => (
+    is  => 'ro',
+    isa => Mojito::Types::NoRef,
+);
+has 'last_name' => (
+    is  => 'ro',
+    isa => Mojito::Types::NoRef,
+);
+has 'email' => (
+    is  => 'ro',
+    isa => Mojito::Types::NoRef,
+);
 has 'username' => (
-    is => 'ro',
+    is  => 'ro',
     isa => Mojito::Types::NoRef,
 );
 has 'realm' => (
-    is => 'ro',
+    is  => 'ro',
     isa => Mojito::Types::NoRef,
 );
 has 'password' => (
-    is => 'ro',
+    is  => 'ro',
     isa => Mojito::Types::NoRef,
 );
 has 'env' => (
-    is => 'ro',
+    is  => 'ro',
     isa => Mojito::Types::NoRef,
 );
 has 'digest_authen_cb' => (
-    is => 'ro',
-    isa => Mojito::Types::CodeRef,
-    lazy => 1,
+    is      => 'ro',
+    isa     => Mojito::Types::CodeRef,
+    lazy    => 1,
     builder => '_build_digest_authen_cb',
 );
-
 
 =head1 Methods
 
@@ -98,21 +110,37 @@ Provide the username, realm (default Mojito) and password.
 =cut
 
 sub add_user {
-    my ( $self ) = @_;
+    my ($self) = @_;
 
     my @digest_input_parts = qw/ username realm password /;
-    my $digest_input = join ':', map {$self->$_} @digest_input_parts;
-    my $HA1          = Digest::MD5::md5_hex($digest_input);
-    my $md5_password = Digest::MD5::md5_hex($self->password);
-    my $id = $self->collection->insert(
+    my $digest_input       = join ':', map { $self->$_ } @digest_input_parts;
+    my $HA1                = Digest::MD5::md5_hex($digest_input);
+    my $md5_password       = Digest::MD5::md5_hex( $self->password );
+    my $id                 = $self->collection->insert(
         {
-            username => $self->username,
-            realm    => $self->realm,
-            HA1      => $HA1,
-            password => $md5_password
+            first_name => $self->first_name,
+            last_name  => $self->last_name,
+            email      => $self->email,
+            username   => $self->username,
+            realm      => $self->realm,
+            HA1        => $HA1,
+            password   => $md5_password
         }
     );
     return $id;
+}
+
+=head2 get_user
+
+Get a user from the database.
+
+=cut
+
+sub get_user {
+    my ( $self, $username ) = @_;
+    $username //= $self->username;
+    return if !$username;
+    return $self->collection->find_one( { username => $username } );
 }
 
 =head2 secret
@@ -121,7 +149,7 @@ Used by Plack::Middleware::Auth::Digest
 
 =cut
 
-sub _secret () { ## no critic
+sub _secret () {    ## no critic
     'més_vi_si_us_plau';
 }
 

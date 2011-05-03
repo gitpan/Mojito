@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito;
 BEGIN {
-  $Mojito::VERSION = '0.09';
+  $Mojito::VERSION = '0.10';
 }
 use Moo;
 
@@ -18,6 +18,16 @@ Base of the application used for creating internal links.
 =cut
 
 has base_url => ( is => 'rw', );
+
+=head2 username
+
+Authenticated (Digest Auth) user name (aka REMOTE_USER)
+
+=cut
+
+has username => (
+    is => 'rw',
+);
 
 has bench_fixture => ( is => 'ro', lazy => 1, builder => '_build_bench_fixture');
 
@@ -43,6 +53,10 @@ sub create_page {
     $page_struct->{body_html} = $self->render_body($page_struct);
     $page_struct->{title}     = $self->intro_text( $page_struct->{body_html} );
     my $id = $self->create($page_struct);
+    $params->{id} = $id;
+    # Put into repo
+    $params->{username} = $self->username;
+    $self->commit_page($page_struct, $params);
 
     return $self->base_url . 'page/' . $id . '/edit';
 }
@@ -74,11 +88,12 @@ sub preview_page {
 # TODO: add title, page and body html to page_struct like above.
 #       Do we even need these two branches given that we're autosaving now.
 # TODO: on new page, insert to get an id then update to that from the start
+        $page_struct->{title} = $params->{page_title}||'no title';
         $self->update( $params->{'mongo_id'}, $page_struct );
     }
 
     my $rendered_content = $self->render_body($page_struct);
-    my $response_href = { rendered_content => $rendered_content };
+    my $response_href = { rendered_content => $rendered_content, message => $page_struct->{message} };
 
     return $response_href;
 }
@@ -111,7 +126,9 @@ sub update_page {
     # Save page to db
     $self->update( $params->{id}, $page );
     # Commit revison to git repo
-    $self->commit_page($page, $params->{id});
+    # add username to params so it can used in the commit
+    $params->{username} = $self->username;
+    $self->commit_page($page, $params);
     return $self->base_url . 'page/' . $params->{id};
 }
 
@@ -126,9 +143,8 @@ sub edit_page_form {
 
     my $page             = $self->read( $params->{id} );
     my $rendered_content = $self->render_body($page);
-    my $source           = $page->{page_source};
 
-    return $self->fillin_edit_page( $source, $rendered_content, $params->{id}, $page->{default_format} );
+    return $self->fillin_edit_page( $page, $rendered_content, $params->{id} );
 }
 
 =head2 view_page
@@ -144,12 +160,14 @@ sub view_page {
     my $page          = $self->read( $params->{id} );
     my $rendered_page = $self->render_page($page);
     my $links         = $self->get_most_recent_links;
+    my $collections   = $self->view_collections_index;
 
     # Change class on view_area when we're in view mode.
-    $rendered_page =~
-      s/(<section\s+id="view_area").*?>/$1 class="view_area_view_mode">/si;
-    $rendered_page =~
-      s/(<section\s+id="recent_area".*?>)<\/section>/$1${links}<\/section>/si;
+    $rendered_page =~ s/(<section\s+id="view_area").*?>/$1 class="view_area_view_mode">/si;
+    # Fill-in recent area
+    $rendered_page =~ s/(<section\s+id="recent_area".*?>)<\/section>/$1${links}<\/section>/si;
+    # Fill-in collections area
+    $rendered_page =~ s/(<section\s+id="collections_area".*?>)<\/section>/$1${collections}<\/section>/si;
 
     return $rendered_page;
 }
@@ -230,7 +248,7 @@ sub view_page_diff {
 </head>
 <body class="html_body">
 ';
-    my $diff = '<pre class="sh_diff">' . "\n" . $self->diff_page($params->{id}) . "\n</pre>";
+    my $diff = '<pre class="sh_diff">' . "\n" . $self->diff_page($params->{id}, $params->{m}, $params->{n}) . "\n</pre>";
     my $foot = "\n</body></html>";
     return $head . $diff . $foot;
 }
@@ -252,12 +270,54 @@ sub search {
     my $link_data = {};
     foreach my $page_id (keys %{$hit_hashref}) {
         my $page = $self->read($page_id);
-        $link_data->{$page_id}->{title} = $page->{title};
+        $link_data->{$page_id}->{title} = $page->{title}||'no title';
         $link_data->{$page_id}->{times_found} = $hit_hashref->{$page_id};
     }
     my @search_hits = map { "<a href='${base_url}page/$_'>$link_data->{$_}->{title} <span style='font-size: 0.82em;'>($link_data->{$_}->{times_found})</span></a>" }
       sort {$link_data->{$b}->{times_found} <=> $link_data->{$a}->{times_found}} keys %{$link_data};
     return join "<br />\n", @search_hits;
+}
+
+=head2 collect
+
+Collect documents.  The id for each document submitted will be put into
+a list of document ids stored in the 'collection' collection.  Yeah, that
+may seem strange at first, but the idea is we want to put allow for arbitrary
+sets of documents from the notes collection.  We construct these sets by creating
+a list (array) of the corresponding document ids and inserting this "document"
+into the "collection" collection.  
+
+For example, the Beer collection document could look like:
+
+    { 
+        collection_name => 'Beer',
+        documents       => [$some_doc_id, $another_doc_id, .. $last_doc_id]
+        permissions     => { owner => 'rwx', group=> 'r', world => 'r' }
+    }
+
+where the doc ids are the usual mongodb auto-generated id.
+
+Return the /collections URL to which we'll redirect.
+
+=cut
+
+sub collect {
+    my ( $self, $params ) = @_;
+    $self->collector->create($params);
+    return $self->base_url . 'collections';
+}
+
+=head2 sort_collection
+
+Store a sorted list of pages. 
+Return the /collections URL to which we'll redirect.
+
+=cut
+
+sub sort_collection {
+    my ( $self, $params ) = @_;
+    $self->collector->create($params);
+    return $self->base_url . 'collections';
 }
 
 =head2 delete_page
@@ -276,6 +336,28 @@ sub delete_page {
     $self->rm_page($params->{id});
 
     return $self->base_url . 'recent';
+}
+
+=head2 publish_page
+
+Publish a page - Currently this means POST to a MM instance.
+
+=cut
+
+sub publish_page {
+    my ( $self, $params ) = @_;
+    
+     my $doc = $self->read($params->{id});
+     my $content = $doc->{page_source};
+     $self->publisher->content($content);
+     $self->publisher->target_base_url($params->{target_base_url});
+     $self->publisher->target_page($params->{name});
+     $self->publisher->user($params->{user});
+     $self->publisher->password($params->{password});
+     my $result = $self->publisher->publish;
+     # return redirect location
+     my $redirect_url =  $self->publisher->target_base_url .  $self->publisher->target_page;
+     my $response_href = { redirect_url => $redirect_url, result => $result };
 }
 
 =head2 bench

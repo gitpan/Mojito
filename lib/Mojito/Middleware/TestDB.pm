@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Middleware::TestDB;
 BEGIN {
-  $Mojito::Middleware::TestDB::VERSION = '0.09';
+  $Mojito::Middleware::TestDB::VERSION = '0.10';
 }
 use parent qw(Plack::Middleware);
 
@@ -14,8 +14,8 @@ sub call {
     # This should be available since we wrap Mojito::Middleware around it
     # See the builder block.
     if ($env->{mojito}) {
-        $env->{mojito}->editer->db_name('mojito_test');
-        $env->{mojito}->linker->doc->db_name('mojito_test');
+#        $env->{mojito}->editer->db_name('mojito_test');
+#        $env->{mojito}->linker->doc->db_name('mojito_test');
         #$env->{mojito}->editer->collection->remove();
     };
     $self->app->($env);

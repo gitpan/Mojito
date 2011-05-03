@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Middleware;
 BEGIN {
-  $Mojito::Middleware::VERSION = '0.09';
+  $Mojito::Middleware::VERSION = '0.10';
 }
 use parent qw(Plack::Middleware);
 use Mojito;
@@ -10,7 +10,10 @@ sub call {
     my ( $self, $env ) = @_;
     my $base_url = $env->{SCRIPT_NAME} || '/';
     $base_url =~ s/([^\/])$/$1\//;
-    $env->{"mojito"} = Mojito->new( base_url => $base_url );
+    $env->{"mojito"} = Mojito->new( 
+        base_url => $base_url, 
+        username => $env->{REMOTE_USER} 
+    );
     $self->app->($env);
 }
 

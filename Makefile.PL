@@ -25,7 +25,8 @@ my %WriteMakefileArgs = (
     'Test::Deep' => '0',
     'Test::Differences' => '0',
     'Test::Exception' => '0',
-    'Test::More' => '0'
+    'Test::More' => '0',
+    'utf8' => '0'
   },
   'CONFIGURE_REQUIRES' => {
     'ExtUtils::MakeMaker' => '6.31'
@@ -42,6 +43,8 @@ my %WriteMakefileArgs = (
     'File::Spec' => '0',
     'Git::Wrapper' => '0',
     'HTML::Strip' => '0',
+    'HTML::Toc' => '0',
+    'HTML::TocInsertor' => '0',
     'HTML::Zoom' => '0',
     'IO::File' => '0',
     'List::Util' => '0',
@@ -57,10 +60,11 @@ my %WriteMakefileArgs = (
     'Text::Textile' => '0',
     'Text::WikiCreole' => '0',
     'Try::Tiny' => '0',
+    'WWW::Mechanize' => '0',
     'parent' => '0',
     'strictures' => '1'
   },
-  'VERSION' => '0.09',
+  'VERSION' => '0.10',
   'test' => {
     'TESTS' => 't/*.t'
   }

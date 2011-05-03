@@ -1,12 +1,13 @@
 use strictures 1;
 package Mojito::Page::Render;
 BEGIN {
-  $Mojito::Page::Render::VERSION = '0.09';
+  $Mojito::Page::Render::VERSION = '0.10';
 }
 use 5.010;
 use Moo;
 use Mojito::Template;
 use Mojito::Filter::Shortcuts;
+use Mojito::Filter::MojoMojo::Converter;
 use Text::Textile qw(textile);
 use Text::Markdown;
 use Text::WikiCreole;
@@ -15,6 +16,7 @@ use HTML::Strip;
 use Data::Dumper::Concise;
 
 with('Mojito::Filter::Shortcuts');
+with('Mojito::Role::Config');
 
 my $textile  = Text::Textile->new;
 my $markdown = Text::Markdown->new;
@@ -42,8 +44,9 @@ sub render_sections {
 
     my ( @formatted_document_sections );
     foreach my $section ( @{ $doc->{sections} } ) {
+#        warn Dumper $section;
         my $from_format = $section->{class} || $doc->{default_format};
-        $from_format = $doc->{default_format} if ($section->{class} eq 'Implicit');
+        $from_format = $doc->{default_format} if ($section->{class} && ($section->{class} eq 'Implicit'));
         my $to_format = 'HTML';
         my $formatted_section = $self->format_content( $section->{content}, $from_format, $to_format );
         push @formatted_document_sections, $formatted_section;
@@ -61,9 +64,12 @@ Make a page for viewing in the browser.
 sub render_page {
     my ( $self, $doc ) = @_;
 
+    return 'page is not available' if !$doc;
     # Give the tmpl object a base url first before asking for the html template.
     my $base_url = $self->base_url;
     $tmpl->base_url($base_url);
+    # Give the template a page id if it exists
+    $tmpl->page_id($doc->{'_id'});
     my $page = $tmpl->template;
 
     if (my $title = $doc->{title}) {
@@ -97,6 +103,10 @@ sub render_body {
     my $rendered_body = join "\n", @{$rendered_sections};
 
     $rendered_body = $self->expand_shortcuts($rendered_body);
+    # Convert MojoMojo content if needed
+    if ($self->config->{convert_mojomojo}) {
+       $rendered_body = Mojito::Filter::MojoMojo::Converter->new( content => $rendered_body )->convert_content;
+    }
     return $rendered_body;
 }
 
@@ -178,6 +188,9 @@ sub format_for_web {
         }
         when (/^sh_html$/i) {
             $formatted_content = "<pre class='sh_html'>$content</pre>";
+        }
+        when (/^note$/i) {
+            $formatted_content = "<div class='note'>$content</div>";
         }
         default {
             # pass HTML through as is

@@ -62,6 +62,10 @@ get '/search/:word' => sub {
     return $mojito->search(scalar params);
 };
 
+get '/page/:id/diff/:m/:n' => sub {
+    return $mojito->diff_page(scalar params);
+};
+
 get '/page/:id/diff' => sub {
     return $mojito->view_page_diff(scalar params);
 };
@@ -71,7 +75,35 @@ get '/page/:id/delete' => sub {
 };
 
 get '/recent' => sub {
-    return $mojito->get_most_recent_links({want_delete_link => 1});
+    return $mojito->recent_links;
+};
+
+get '/collect' => sub {
+    return $mojito->collect_page_form(scalar params);
+};
+
+post '/collect' => sub {
+    redirect $mojito->collect(scalar params);
+};
+
+get '/collection/:id' => sub {
+    return $mojito->collection_page(scalar params);
+};
+
+get '/collections' => sub {
+    return $mojito->collections_index;
+};
+
+get '/collection/:id/sort' => sub {
+    return $mojito->sort_collection_form(scalar params);
+};
+
+post '/collection/:id/sort' => sub {
+    redirect $mojito->sort_collection(scalar params);
+};
+
+post '/publish' => sub {
+    to_json( $mojito->publish_page(scalar params) );
 };
 
 get '/' => sub {
@@ -83,14 +115,15 @@ get '/public/feed/:feed' => sub {
 };
 
 builder {
-    enable "+Mojito::Middleware";
-    enable_if { $ENV{RELEASE_TESTING}; } "+Mojito::Middleware::TestDB";
     enable_if { $_[0]->{PATH_INFO} !~ m/^\/(?:public|favicon.ico)/ }
       "Auth::Digest",
       realm => "Mojito",
       secret => Mojito::Auth::_secret,
       password_hashed => 1,
       authenticator => Mojito::Auth->new->digest_authen_cb;
+    enable "+Mojito::Middleware";
+    enable_if { $ENV{RELEASE_TESTING}; } "+Mojito::Middleware::TestDB";
+
     dance;
 };
 

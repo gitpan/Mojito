@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Filter::Shortcuts;
 BEGIN {
-  $Mojito::Filter::Shortcuts::VERSION = '0.09';
+  $Mojito::Filter::Shortcuts::VERSION = '0.10';
 }
 use Moo::Role;
 use Mojito::Types;
@@ -60,7 +60,7 @@ Expand the fonality ticket abbreviated shortcut.
 
 sub fonality_ticket {
     my ($self, $content) = @_;
-    return if !($content || $self->config->{fonality_ticket_url});
+    return if !($content && $self->config->{fonality_ticket_url});
     my $url = $self->config->{fonality_ticket_url};
     $content =~ s/{{fontic\s+(\d+)[^}]*}}/<a href="${url}${1}">${1}<\/a>/sig;
     return $content;
