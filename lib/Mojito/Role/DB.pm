@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Role::DB;
 BEGIN {
-  $Mojito::Role::DB::VERSION = '0.10';
+  $Mojito::Role::DB::VERSION = '0.11';
 }
 use Moo::Role;
 use MongoDB;
@@ -36,9 +36,14 @@ has 'collection_name' => (
     default => sub { 'notes' },
     clearer => 'clear_collection_name',
 );
+has 'db_host' => (
+    is => 'ro',
+    lazy => 1,
+    default => sub { 'localhost:27017' },
+);
 
 sub _build_conn {
-    MongoDB::Connection->new;
+    MongoDB::Connection->new(host => $_[0]->db_host);
 }
 
 sub _build_db  {

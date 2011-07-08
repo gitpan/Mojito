@@ -5,12 +5,14 @@ MANIFEST
 META.yml
 Makefile.PL
 README
-app/basic.psgi
 app/dancer.pl
+app/example/basic.psgi
+app/example/basic_auth.psgi
+app/example/minimal.psgi
+app/example/utf8.psgi
 app/mojito.pl
 app/mojo.pl
 app/tatsumaki.psgi
-app/utf8.psgi
 bench/edit_page.t
 bench/konichiwa.psgi
 bench/page.pl
@@ -98,6 +100,7 @@ files/syntax_highlight/prettify_mojito.css
 lib/Mojito.pm
 lib/Mojito/Auth.pm
 lib/Mojito/Collection/CRUD.pm
+lib/Mojito/Collection/Present.pm
 lib/Mojito/Filter/MojoMojo/Converter.pm
 lib/Mojito/Filter/Shortcuts.pm
 lib/Mojito/Middleware.pm
@@ -123,6 +126,7 @@ lib/Mojito/Types.pm
 lib/Mojito/conf/mojito.conf
 lib/Mojito/conf/mojito_local.conf
 script/add_user.pl
+script/copy_collection.pl
 script/list_feeds_for.pl
 script/wtf-gi.pl
 t/00-compile.t

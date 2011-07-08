@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Template::Role::Publish;
 BEGIN {
-  $Mojito::Template::Role::Publish::VERSION = '0.10';
+  $Mojito::Template::Role::Publish::VERSION = '0.11';
 }
 use Moo::Role;
 use Mojito::Page::Publish;
@@ -22,7 +22,8 @@ has publish_form => (
 );
 sub _build_publish_form {
     my $self = shift;
-    
+  
+    return if not defined $self->publisher->target_base_url;  
     my $target_base_url = $self->publisher->target_base_url;
     my $user = $self->publisher->user;
     my $password = $self->publisher->password;

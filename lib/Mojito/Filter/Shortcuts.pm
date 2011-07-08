@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Filter::Shortcuts;
 BEGIN {
-  $Mojito::Filter::Shortcuts::VERSION = '0.10';
+  $Mojito::Filter::Shortcuts::VERSION = '0.11';
 }
 use Moo::Role;
 use Mojito::Types;

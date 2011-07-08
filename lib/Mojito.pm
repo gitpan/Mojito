@@ -1,9 +1,11 @@
 use strictures 1;
 package Mojito;
 BEGIN {
-  $Mojito::VERSION = '0.10';
+  $Mojito::VERSION = '0.11';
 }
 use Moo;
+use Path::Class;
+use File::Spec;
 
 use Data::Dumper::Concise;
 
@@ -200,6 +202,40 @@ sub view_page_public {
     return $rendered_page;
 }
 
+=head2 view_page_collected
+
+Given a page id and a collection id we retrieve the collected page source
+from the db and return it as an HTML rendered page to the browser.  This method 
+is much like the view_page() method, but is setup for viewing pages in a collection
+with a collection navigation: next, previous, index (toc)
+
+=cut
+
+sub view_page_collected {
+    my ( $self, $params ) = @_;
+
+    my $page          = $self->read( $params->{page_id} );
+    my $rendered_page = $self->render_page($page);
+
+    # Change class on view_area when we're in view mode.
+    $rendered_page =~
+      s/(<section\s+id="view_area").*?>/$1 class="view_area_view_mode">/si;
+
+    # Strip out Edit and New links (even though they are Auth::Digest Protected)
+    # Remove edit, new links and the recent area
+    $rendered_page =~ s/<nav id="edit_link".*?><\/nav>//sig;
+    $rendered_page =~ s/<nav id="new_link".*?>.*?<\/nav>//sig;
+    $rendered_page =~ s/<section id="recent_area".*?><\/section>//si;
+    $rendered_page =~ s/<section id="publish_area">.*?<\/section>//si;
+    $rendered_page =~ s/<section id="collections_area"><\/section>//si;
+    $rendered_page =~ s/<section id="search_area">.*?<\/section>//si;
+    # Fill-in collection navigation area
+    my $collection_nav = $self->view_collection_nav( $params );
+    $rendered_page =~ s/(<section\s+id="collection_nav_area".*?>)<\/section>/$1${collection_nav}<\/section>/si;
+
+    return $rendered_page;
+}
+
 =head2 view_home_page
 
 Create the view for the base of the application.
@@ -303,7 +339,17 @@ Return the /collections URL to which we'll redirect.
 
 sub collect {
     my ( $self, $params ) = @_;
-    $self->collector->create($params);
+    
+    # Create page in DB
+    $params->{id}= $self->collector->create($params);
+   
+    # Put into repo
+    $params->{username} = $self->username;
+    my $page_source = join "\n", @{$params->{collected_page_ids}};
+    $page_source .= "\n";
+    my $page_struct = { page_source => $page_source };
+    $self->commit_page($page_struct, $params);
+
     return $self->base_url . 'collections';
 }
 
@@ -318,6 +364,78 @@ sub sort_collection {
     my ( $self, $params ) = @_;
     $self->collector->create($params);
     return $self->base_url . 'collections';
+}
+
+=head2 merge_collection
+
+Given a collection id, we concatentate all its page into one.
+
+=cut
+
+sub merge_collection {
+    my ( $self, $params ) = @_;
+
+    use Mojito::Filter::MojoMojo::Converter;
+    # Get the page ids for the collection.
+    my $collection_struct = $self->collector->read($params->{collection_id});
+    my @page_ids = @{$collection_struct->{collected_page_ids}};
+    my $rendered_bodies;
+    foreach my $page_id (@page_ids) {
+        $rendered_bodies .= $self->render_body($self->read($page_id));
+    }
+    my $collection_title = $collection_struct->{collection_name};
+    $collection_title = "<h1 class='collection_title'>$collection_title</h1>";
+    my $toc = "\n{{toc 1-}}\n";
+    $rendered_bodies =  $collection_title . $toc . $rendered_bodies;
+    my $convert = Mojito::Filter::MojoMojo::Converter->new( content => $rendered_bodies );
+    $convert->toc;
+
+    return $self->wrap_page($convert->content, $collection_struct->{collection_name});
+}
+
+=head2 delete_collection
+
+Given a collection id:
+* Delete it from the mongo DB
+Return the URL to of the collections index 
+
+=cut
+
+sub delete_collection {
+    my ( $self, $params ) = @_;
+    $self->collector->delete($params->{collection_id});
+    return $self->base_url . 'collections';
+}
+
+sub epub_collection {
+    my ($self, $params) = @_;
+    
+    my $authors = $self->get_author_for($params->{collection_id});
+
+    my $collection_html = $self->merge_collection($params);
+    # Strip out HTML::TOC
+    $collection_html =~ s/<div class="toc">.*?<\/div>//sig;
+    
+    my $tmp_html_file = Path::Class::file(File::Spec->tmpdir, 'collection_' 
+                                     . $params->{collection_id} 
+                                     . '.html');
+    open my $html_file, '>', $tmp_html_file or die "Can't open html file: $tmp_html_file";
+    print $html_file $collection_html;
+    close $html_file;
+
+    my $tmp_epub_file = Path::Class::file(File::Spec->tmpdir, 'collection_' 
+                                     . $params->{collection_id} 
+                                     . '.epub');
+    my $converter = $self->tmpl->config->{ebook_converter};  
+    return if !(-e $converter);
+    # TODO Handle Exceptions
+    `converter $tmp_html_file $tmp_epub_file --authors "${authors}"  --level2-toc //h:h2 --level1-toc //h:h1 --extra-css ".html_body {background-color: white;}"`;
+    open my $epub_file, '<', $tmp_epub_file or die "Can't open epub file: $tmp_epub_file";
+    my $epub;
+    while (<$epub_file>) {
+        $epub .= $_;
+    }
+    return $epub;
 }
 
 =head2 delete_page
@@ -421,7 +539,7 @@ It has been inspired by MojoMojo which is a mature, stable, responsive and
 feature rich wiki system.  Check MojoMojo out if you're looking for an enterprise
 grade wiki.  Mojito is not attempting to be a wiki, but rather its initial
 goal is to enable individuals to easily author HTML5 compliant documents
-whether for for personal or public consumption.
+whether for personal or public consumption.
 
 =head1 Goals
 
@@ -437,7 +555,7 @@ Some goals and guidelines are:
 
 =head1 Current Limitations
 
-    * Single Word Search
+    * single word search
     * revision history doesn't have a web interface yet
 
 =head1 Authors

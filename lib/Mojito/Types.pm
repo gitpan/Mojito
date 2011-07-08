@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Types;
 BEGIN {
-  $Mojito::Types::VERSION = '0.10';
+  $Mojito::Types::VERSION = '0.11';
 }
 use Sub::Quote qw(quote_sub);
 use Scalar::Util;

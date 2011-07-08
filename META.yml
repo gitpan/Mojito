@@ -19,9 +19,9 @@ build_requires:
   Test::More: 0
   utf8: 0
 configure_requires:
-  ExtUtils::MakeMaker: 6.31
+  ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.200004, CPAN::Meta::Converter version 2.110580'
+generated_by: 'Dist::Zilla version 4.200006, CPAN::Meta::Converter version 2.110580'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -39,11 +39,13 @@ requires:
   HTML::TocInsertor: 0
   HTML::Zoom: 0
   IO::File: 0
+  List::MoreUtils: 0
   List::Util: 0
   MongoDB: 0
   MongoDB::OID: 0
   Moo: 0
   Moo::Role: 0
+  Path::Class: 0
   Plack::Middleware: 0
   Pod::Simple::XHTML: 0
   Scalar::Util: 0
@@ -56,4 +58,4 @@ requires:
   parent: 0
   perl: 5.010001
   strictures: 1
-version: 0.10
+version: 0.11

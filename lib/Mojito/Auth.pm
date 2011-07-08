@@ -2,7 +2,7 @@ use strictures 1;
 
 package Mojito::Auth;
 BEGIN {
-  $Mojito::Auth::VERSION = '0.10';
+  $Mojito::Auth::VERSION = '0.11';
 }
 use Moo;
 use Digest::MD5;

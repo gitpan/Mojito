@@ -2,7 +2,7 @@ use strictures 1;
 
 package Mojito::Page::Git;
 BEGIN {
-  $Mojito::Page::Git::VERSION = '0.10';
+  $Mojito::Page::Git::VERSION = '0.11';
 }
 use 5.010;
 use Moo;
@@ -88,7 +88,7 @@ sub rm_page {
         $self->git->commit( { message => "Delete page" }, $page_id );
     }
     catch {
-        warn "Try delete page: $page_id, but had problems: $_";  
+        warn "Tried to delete page: $page_id, but had problems: $_";  
     };
     
 }
@@ -143,6 +143,28 @@ sub search_word {
     my %hit_hash = ();
     %hit_hash = map { $_ => ++$hit_hash{$_} } @page_ids;
     return \%hit_hash;
+}
+
+=head2 get_author_for
+
+Given a page id find the author of the last commit.
+
+=cut
+
+sub get_author_for {
+    my ($self, $page_id) = (shift, shift);
+    
+    my $author = "Author Unknown";
+    try {
+        my @log = $self->git->log( {}, ${page_id} );
+        $author = $log[0]->author;
+        $author =~ s/\s+\<.*\>//;
+    }
+    catch {
+        warn "Could not git log for page: ${page_id}"; 
+    };
+
+    return $author;
 }
 
 1

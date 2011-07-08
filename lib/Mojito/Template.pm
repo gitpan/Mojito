@@ -1,11 +1,12 @@
 use strictures 1;
 package Mojito::Template;
 BEGIN {
-  $Mojito::Template::VERSION = '0.10';
+  $Mojito::Template::VERSION = '0.11';
 }
 use Moo;
 use Mojito::Types;
 use Mojito::Model::Link;
+use Mojito::Collection::CRUD;
 use Data::Dumper::Concise;
 
 with('Mojito::Template::Role::Javascript');
@@ -54,12 +55,6 @@ has js_css_html => (
     default => sub { my $self = shift; join "\n", @{$self->javascript_html}, @{$self->css_html} }
 );
 
-has page_wrap_start => (
-    is => 'ro',
-    lazy => 1,
-    builder => '_build_page_wrap_start',
-);
-
 has page_wrap_end => (
     is => 'ro',
     lazy => 1,
@@ -74,7 +69,7 @@ sub _build_template {
     my $js_css = $self->js_css_html;
     my $page_id = $self->page_id||'';
     my $publish_form = '';
-    $publish_form = $self->publish_form if $page_id;
+    $publish_form = $self->publish_form||'' if $page_id;
     my $edit_page = <<"END_HTML";
 <!doctype html>
 <html>
@@ -92,6 +87,7 @@ $js_css
 <nav id="new_link" class="new_link"> <a href=${base_url}page>New</a></nav>
 </header>
 <section id="message_area"></section>
+<section id="collection_nav_area"></section>
 <article id="body_wrapper">
 <input type="hidden" id ="page_id" name="page_id" value="$page_id" />
 <section id="edit_area">
@@ -135,9 +131,8 @@ END_HTML
 }
 
 
-sub _build_page_wrap_start {
-    my $self = shift;
-
+sub page_wrap_start {
+    my ($self, $title) = @_;
     my $mojito_version = $self->config->{VERSION};
     my $js_css = $self->js_css_html;
     my $page_start = <<"START_HTML";
@@ -146,7 +141,7 @@ sub _build_page_wrap_start {
 <head>
   <meta charset=utf-8>
   <meta http-equiv="powered by" content="Mojito $mojito_version" />
-  <title>Mojito page</title>
+  <title>$title</title>
 $js_css
 <script></script>
 <style></style>
@@ -178,8 +173,9 @@ Wrap a page body with start and end HTML.
 =cut
 
 sub wrap_page {
-    my ($self, $page_body) = @_;
-    return $self->page_wrap_start . $page_body . $self->page_wrap_end;
+    my ($self, $page_body, $title) = @_;
+    $title ||= 'Mojito page';
+    return ($self->page_wrap_start($title) . $page_body . $self->page_wrap_end);
 }
 
 sub _build_collect_page_form {
@@ -220,8 +216,13 @@ Given a collection id, show a list of belonging pages.
 
 sub collection_page {
     my ($self, $params) = (shift, shift);
-    my $list = Mojito::Model::Link->new(base_url => $self->base_url);
-    return $self->wrap_page($list->view_collection_page({ collection_id => $params->{id} }));
+
+    my $base_url = $self->base_url;
+    $base_url .= 'public/' if $params->{public};
+    my $list = Mojito::Model::Link->new(base_url => $base_url);
+    my $collector = Mojito::Collection::CRUD->new;
+    my $collection = $collector->read( $params->{id} );
+    return $self->wrap_page($list->view_collection_page({ collection_id => $params->{id} }), $collection->{collection_name});
 }
 
 sub _build_home_page {

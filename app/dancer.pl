@@ -1,11 +1,7 @@
-#!/usr/bin/env perl
 use Dancer;
-use Dancer::Plugin::Ajax;
 use Plack::Builder;
-use lib '../lib';
 use Mojito;
 use Mojito::Auth;
-
 use Data::Dumper::Concise;
 
 #set 'log_path'  => '/tmp';
@@ -90,6 +86,12 @@ get '/collection/:id' => sub {
     return $mojito->collection_page(scalar params);
 };
 
+get '/public/collection/:id' => sub {
+    my $params = scalar params;
+    $params->{public} = 1;
+    return $mojito->collection_page($params);
+};
+
 get '/collections' => sub {
     return $mojito->collections_index;
 };
@@ -100,6 +102,32 @@ get '/collection/:id/sort' => sub {
 
 post '/collection/:id/sort' => sub {
     redirect $mojito->sort_collection(scalar params);
+};
+
+get '/collection/:collection_id/page/:page_id' => sub {
+   $mojito->view_page_collected(scalar params);
+};
+          
+get '/public/collection/:collection_id/page/:page_id' => sub {
+    my $params = scalar params;
+    $params->{public} = 1;
+    $mojito->view_page_collected($params);
+};
+          
+get  '/collection/:collection_id/merge' => sub {
+    $mojito->merge_collection(scalar params);
+};
+
+get '/collection/:collection_id/delete' => sub {
+    redirect $mojito->delete_collection(scalar params);
+};
+          
+get '/collection/:collection_id/epub' => sub {
+    my $collection_id = params->{collection_id};
+    my $epub_doc = $mojito->epub_collection({ collection_id => $collection_id });
+    headers 'Content-type'        => 'application/octet-stream', 
+            'Content-Disposition' => "attachment; filename=collection_${collection_id}.epub";   
+    return $epub_doc;
 };
 
 post '/publish' => sub {

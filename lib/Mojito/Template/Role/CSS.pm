@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Template::Role::CSS;
 BEGIN {
-  $Mojito::Template::Role::CSS::VERSION = '0.10';
+  $Mojito::Template::Role::CSS::VERSION = '0.11';
 }
 use Moo::Role;
 use Mojito::Types;

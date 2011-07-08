@@ -1,10 +1,11 @@
 use strictures 1;
 package Mojito::Model::Link;
 BEGIN {
-  $Mojito::Model::Link::VERSION = '0.10';
+  $Mojito::Model::Link::VERSION = '0.11';
 }
 use Moo;
 use Mojito::Model::Doc;
+use Mojito::Collection::Present;
 use Data::Dumper::Concise;
 
 has base_url => ( is => 'rw', );
@@ -199,6 +200,7 @@ Given link data (doc id and title) and possibly some $args then create hyperlink
 sub create_selectable_page_list {
     my ($self, $link_data) = (shift, shift);
 
+    return if !$link_data;
     my $base_url = $self->base_url;
     my $list;
     foreach my $datum (@{$link_data}) {
@@ -285,12 +287,12 @@ sub view_collection_page {
     my $name_of_page_collection = $self->name_of_page_collection;
     my $list_title =<<"EOH";
     <header id='collections_index' style='font-weight: bold;'>
-    List of pages in the collection:  
     <span style='color: darkblue; font-size: 1.33em;'>$name_of_page_collection</i></span>
     </header>
 EOH
 
-    $args->{route} = '/page/';
+    $args->{route} = '/collection/' . $args->{collection_id} . '/page/';
+    $args->{list_style} = 'ordered';
     my $list = $self->create_generic_list_of_links($link_data, $args) || "No Collections yet.  Get to <a href='${base_url}/collect'>creating them!</a>";
 
     return $list_title . $list;
@@ -338,11 +340,91 @@ sub create_generic_list_of_links {
     # NOTE: We're assuming a route like /page/$id or /collection/$id etc.
     my $base_href = $base_url . $route;
     my @links;
+    my $item_number = 1;
     foreach my $datum (@{$link_data}) {
-        push @links, '&middot; ' . "<a href=\"${base_href}" . $datum->{id} . '">' . $datum->{title} . "</a>";
+        my $moniker = ($args->{list_style} && $args->{list_style} eq 'ordered') ? "$item_number. " : '&middot; ';
+        push @links, $moniker . "<a href=\"${base_href}" . $datum->{id} . '">' . $datum->{title} . "</a>";
+        $item_number++;
     }
     my $links = join "<br />\n", @links;
     my $return = '<section id="list_of_links">' .  $links . '</section>';
+}
+
+sub view_collection_nav {
+    my ($self, $params) = @_;
+    
+    # Obtain focus point.
+    my $presenter = Mojito::Collection::Present->new( 
+        collection_id => $params->{collection_id}, 
+        focus_page_id => $params->{page_id},
+    );
+    
+    # Handle public collections
+    my $base_url = $self->base_url;
+    $base_url .= 'public/' if $params->{public};
+
+    my $next_page_URL     = $base_url . $presenter->next_page_route;
+    my $previous_page_URL = $base_url . $presenter->previous_page_route;
+    my $index_page_URL    = $base_url . $presenter->index_page_route;
+    my $js = $self->collection_nav_js( $next_page_URL, $previous_page_URL, $index_page_URL);
+    my $nav_fragment =<<"EOH";
+    $js
+   <div style="float:right;">
+    <a accesskey='p' href="${previous_page_URL}" title='[p]'>&lt; &lt; Previous</a> |
+    <a accesskey='i' href="${index_page_URL}" title='[i]'>Index</a> |
+    <a accesskey='n' href="${next_page_URL}" title='[n]'>Next &gt;&gt;</a>
+    </div>
+EOH
+
+    return $nav_fragment;
+}
+
+sub collection_nav_js {
+    my ($self, $next_page, $previous_page, $index_page) = @_;
+
+    my $js =<<"EOJ";
+<script>
+    function nextSlide() {
+        window.location = '$next_page';
+    }
+    
+    function prevSlide() {
+        window.location = '$previous_page';
+    }
+    
+    function indexSlide() {
+        window.location = '$index_page';
+    }
+    
+    function handleKey(e) {
+        var key;
+        if (e == null) {
+            // IE
+            key = event.keyCode
+        } 
+        else {
+            // Mozilla
+            if (e.altKey || e.ctrlKey) {
+                return true
+            }
+            key = e.which
+        }
+        switch(key) {
+            case 8: prevSlide(); break
+            case 13: nextSlide(); break
+            case 32: nextSlide(); break
+            case 105: indexSlide(); break
+            case 110: nextSlide(); break
+            case 112: prevSlide(); break
+            default: //xxx(e.which)
+        }
+    }
+
+    document.onkeypress = handleKey
+</script>
+
+EOJ
+    return $js
 }
 
 =head2 BUILD

@@ -20,13 +20,29 @@ my $result = GetOptions(
 $transform = 'transform_' . $transform;
 
 my $messages = [
-
+    {
+        name           => 'EPubCollection',
+        request_method => 'get',
+        route          => '/collection/:id/epub',
+        response       => '$mojito->epub_collection($params)',
+        response_type  => 'application/octet-stream',
+        status_code    => 200,
+    },
+    {
+        name           => 'DeleteCollection',
+        request_method => 'get',
+        route          => '/collection/:id/delete',
+        response       => '$mojito->delete_collection($params)',
+        response_type  => 'redirect',
+        status_code    => 301,
+    },
     {
         name           => 'ViewPage',
         request_method => 'get',
         route          => '/page/:id',
         response       => '$mojito->view_page($params)',
-        response_type  => 'html'
+        response_type  => 'html',
+        status_code    => 200,
     },
     {
         name           => 'EditPage',
@@ -34,6 +50,7 @@ my $messages = [
         route          => '/page/:id/edit',
         response       => '$mojito->edit_page_form($params)',
         response_type  => 'html',
+        status_code    => 200,
     },
     {
         name           => 'EditPage',
@@ -41,6 +58,7 @@ my $messages = [
         route          => '/page/:id/edit',
         response       => '$mojito->edit_page($params)',
         response_type  => 'redirect',
+        status_code    => 302,
     },
     {
         name           => 'SearchPage',
@@ -48,6 +66,7 @@ my $messages = [
         route          => '/search/:word',
         response       => '$mojito->search($params)',
         response_type  => 'html',
+        status_code    => 200,
     },
     {
         name           => 'SearchPage',
@@ -105,6 +124,14 @@ my $messages = [
         status_code    => 200,
     },
     {
+        name           => 'PublicCollectionPage',
+        route          => '/public/collection/:id',
+        request_method => 'get',
+        response       => '$mojito->collection_page($params)',
+        response_type  => 'html',
+        status_code    => 200,
+    },
+    {
         name           => 'SortCollection',
         route          => '/collection/:id/sort',
         request_method => 'get',
@@ -128,14 +155,40 @@ my $messages = [
         response_type  => 'json',
         status_code    => 200,
     },
+    {
+        name           => 'CollectedPage',
+        route          => '/collection/:collection_id/page/:page_id',
+        request_method => 'get',
+        response       => '$mojito->view_page_collected($params)',
+        response_type  => 'html',
+        status_code    => 200,
+    },
+    {
+        name           => 'PublicCollectedPage',
+        route          => '/public/collection/:collection_id/page/:page_id',
+        request_method => 'get',
+        response       => '$mojito->view_page_collected($params)',
+        response_type  => 'html',
+        status_code    => 200,
+    },
+    {
+        name           => 'MergeCollection',
+        route          => '/collection/:collection_id/merge',
+        request_method => 'get',
+        response       => '$mojito->merge_collection($params)',
+        response_type  => 'html',
+        status_code    => 200,
+    },
 ];
 
 sub get_messages_by_name {
     my $name          = shift;
+    
     my @pages         = grep { $_->{name} =~ m/^$name$/ } @{$messages};
     my $message_count = scalar @pages;
     die "NEED exactly one or two messages by name. Found ", $message_count
       if ( $message_count != 1 && $message_count != 2 );
+      
     return \@pages;
 }
 
@@ -242,7 +295,7 @@ sub transform_tatsumaki {
     $message_response =~ s/\$mojito/\$self->request->env->{'mojito'}/;
     my $message_route = $message->{route};
     my ( $args, $params ) = route_handler( $message->{route}, 'tatsumaki' );
-    my $request_params;
+    my $request_params = '';
     $request_params =
 '@{$params}{ keys %{$self->request->parameters} } = values %{$self->request->parameters};'
       if ( $message->{request_method} =~ m/post/i );

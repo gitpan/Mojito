@@ -1,6 +1,4 @@
-#!/usr/bin/env perl
 use Web::Simple 'MojitoApp';
-use lib '../lib';
 use Mojito;
 use Mojito::Auth;
 use JSON;
@@ -133,6 +131,12 @@ use Data::Dumper::Concise;
               [ 200, ['Content-type', 'text/html'], [$output] ];
           },
           
+          sub ( GET + /public/collection/* ) {
+              my ($self, $collection_id) = @_;
+              my $output = $mojito->collection_page({public => 1, id => $collection_id});
+              [ 200, ['Content-type', 'text/html'], [$output] ];
+          },     
+ 
           sub ( GET + /collection/*/sort ) {
               my ($self, $collection_id) = @_;
               my $output = $mojito->sort_collection_form({id => $collection_id});
@@ -145,7 +149,55 @@ use Data::Dumper::Concise;
               my $redirect_url = $mojito->sort_collection($params);
               [ 301, [ Location => $redirect_url ], [] ];
           },
+          
+          sub ( GET + /collection/*/page/* ) {
+              my ($self, $collection_id, $page_id) = @_;
+              my $params =  {
+                  collection_id => $collection_id,
+                  page_id => $page_id
+              };
+              my $output = $mojito->view_page_collected($params);
+              [ 200, ['Content-type', 'text/html'], [$output] ];
+          },
+          
+          sub ( GET + /public/collection/*/page/* ) {
+              my ($self, $collection_id, $page_id) = @_;
+              my $params =  {
+                  public        => 1,
+                  collection_id => $collection_id,
+                  page_id       => $page_id
+              };
+              my $output = $mojito->view_page_collected($params);
+              [ 200, ['Content-type', 'text/html'], [$output] ];
+          },
+          
+          sub ( GET + /collection/*/merge ) {
+             my ($self, $collection_id) = @_;
+             my $params = {
+                 collection_id => $collection_id,
+             };
+             my $output = $mojito->merge_collection($params);
+             [ 200, ['Content-type', 'text/html'], [$output] ];
+          },
 
+          sub ( GET + /collection/*/delete ) {
+              my ($self, $collection_id) = @_;
+              my $redirect_url = $mojito->delete_collection({ collection_id => $collection_id });
+              [ 301, [ Location => $redirect_url ], [] ];
+          },
+          
+          sub ( GET + /collection/*/epub ) {
+              my ($self, $collection_id) = (shift, shift);
+
+              my $output = $mojito->epub_collection({ collection_id => $collection_id });
+              [ 200, 
+                [
+                    'Content-type'        => 'application/octet-stream',
+                    'Content-Disposition' => "attachment; filename=collection_${collection_id}.epub",
+                ],  
+                [ $output ] ];
+          },
+          
           sub ( POST + /publish + %* ) {
               my ($self, $params) = @_;
               my $response_href = $mojito->publish_page($params);
