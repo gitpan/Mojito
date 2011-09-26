@@ -1,10 +1,10 @@
 use strictures 1;
 package Mojito::Filter::Shortcuts;
 BEGIN {
-  $Mojito::Filter::Shortcuts::VERSION = '0.11';
+  $Mojito::Filter::Shortcuts::VERSION = '0.12';
 }
 use Moo::Role;
-use Mojito::Types;
+use MooX::Types::MooseLike qw(:all);
 use 5.010;
 use Data::Dumper::Concise;
 
@@ -12,7 +12,7 @@ with('Mojito::Role::Config');
 
 has shortcuts => (
     is => 'ro',
-    isa => Mojito::Types::ArrayRef,
+    isa => ArrayRef,
     lazy => 1,
     builder => '_build_shortcuts',
 );

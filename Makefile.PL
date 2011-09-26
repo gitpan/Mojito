@@ -48,15 +48,14 @@ my %WriteMakefileArgs = (
     'HTML::Zoom' => '0',
     'IO::File' => '0',
     'List::MoreUtils' => '0',
-    'List::Util' => '0',
     'MongoDB' => '0',
     'MongoDB::OID' => '0',
     'Moo' => '0',
     'Moo::Role' => '0',
+    'MooX::Types::MooseLike' => '0',
     'Path::Class' => '0',
     'Plack::Middleware' => '0',
     'Pod::Simple::XHTML' => '0',
-    'Scalar::Util' => '0',
     'Sub::Quote' => '0',
     'Text::Markdown' => '0',
     'Text::Textile' => '0',
@@ -66,7 +65,7 @@ my %WriteMakefileArgs = (
     'parent' => '0',
     'strictures' => '1'
   },
-  'VERSION' => '0.11',
+  'VERSION' => '0.12',
   'test' => {
     'TESTS' => 't/*.t'
   }

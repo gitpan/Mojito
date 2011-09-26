@@ -1,16 +1,16 @@
 use strictures 1;
 package Mojito::Role::Config;
 BEGIN {
-  $Mojito::Role::Config::VERSION = '0.11';
+  $Mojito::Role::Config::VERSION = '0.12';
 }
 use Moo::Role;
-use Mojito::Types;
+use MooX::Types::MooseLike qw(:all);
 use Cwd qw/ abs_path /;
 use Dir::Self;
 
 has 'config' => (
     is  => 'ro',
-    isa => Mojito::Types::HashRef,
+    isa => HashRef,
     lazy => 1,
     builder => '_build_config',
 );

@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito;
 BEGIN {
-  $Mojito::VERSION = '0.11';
+  $Mojito::VERSION = '0.12';
 }
 use Moo;
 use Path::Class;
@@ -407,6 +407,12 @@ sub delete_collection {
     return $self->base_url . 'collections';
 }
 
+=head2 epub_collection
+
+Create and .epub document from the given collection.
+
+=cut
+
 sub epub_collection {
     my ($self, $params) = @_;
     
@@ -426,10 +432,12 @@ sub epub_collection {
     my $tmp_epub_file = Path::Class::file(File::Spec->tmpdir, 'collection_' 
                                      . $params->{collection_id} 
                                      . '.epub');
-    my $converter = $self->tmpl->config->{ebook_converter};  
-    return if !(-e $converter);
+    my $converter = $self->tmpl->config->{ebook_converter};
+    
+    # Check that we have a converter defined and that it exists on the file system.
+    return if !($converter && -e $converter);
     # TODO Handle Exceptions
-    `converter $tmp_html_file $tmp_epub_file --authors "${authors}"  --level2-toc //h:h2 --level1-toc //h:h1 --extra-css ".html_body {background-color: white;}"`;
+    `$converter $tmp_html_file $tmp_epub_file --authors "${authors}"  --level2-toc //h:h2 --level1-toc //h:h1 --extra-css ".html_body {background-color: white;}"`;
     open my $epub_file, '<', $tmp_epub_file or die "Can't open epub file: $tmp_epub_file";
     my $epub;
     while (<$epub_file>) {

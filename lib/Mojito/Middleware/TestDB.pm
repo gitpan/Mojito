@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Middleware::TestDB;
 BEGIN {
-  $Mojito::Middleware::TestDB::VERSION = '0.11';
+  $Mojito::Middleware::TestDB::VERSION = '0.12';
 }
 use parent qw(Plack::Middleware);
 

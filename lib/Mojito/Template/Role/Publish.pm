@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Template::Role::Publish;
 BEGIN {
-  $Mojito::Template::Role::Publish::VERSION = '0.11';
+  $Mojito::Template::Role::Publish::VERSION = '0.12';
 }
 use Moo::Role;
 use Mojito::Page::Publish;

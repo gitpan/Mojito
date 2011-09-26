@@ -122,9 +122,7 @@ lib/Mojito/Template/Role/CSS.pm
 lib/Mojito/Template/Role/Javascript.pm
 lib/Mojito/Template/Role/Publish.pm
 lib/Mojito/Template/Zoom.pm
-lib/Mojito/Types.pm
 lib/Mojito/conf/mojito.conf
-lib/Mojito/conf/mojito_local.conf
 script/add_user.pl
 script/copy_collection.pl
 script/list_feeds_for.pl
