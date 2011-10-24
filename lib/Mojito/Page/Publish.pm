@@ -1,8 +1,8 @@
 use strictures 1;
 
 package Mojito::Page::Publish;
-BEGIN {
-  $Mojito::Page::Publish::VERSION = '0.12';
+{
+  $Mojito::Page::Publish::VERSION = '0.13';
 }
 use Moo;
 use WWW::Mechanize;

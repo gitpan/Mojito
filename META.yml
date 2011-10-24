@@ -17,11 +17,13 @@ build_requires:
   Test::Differences: 0
   Test::Exception: 0
   Test::More: 0
+  strict: 0
   utf8: 0
+  warnings: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.200006, CPAN::Meta::Converter version 2.110930001'
+generated_by: 'Dist::Zilla version 4.300002, CPAN::Meta::Converter version 2.112150'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -57,4 +59,4 @@ requires:
   parent: 0
   perl: 5.010001
   strictures: 1
-version: 0.12
+version: 0.13

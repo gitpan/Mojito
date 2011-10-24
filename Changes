@@ -1,7 +1,15 @@
+0.13      2011-10-24 08:31:15 America/Denver
+          [Remedies]
+          - publish.t was running on smokers when it should not
+          
+          [Refinements]
+          - Limit number of recent articles displayed via 
+            'last_link_number' config option
+
 0.12      2011-09-26 16:48:22 America/Denver
-		[Refinements]
-		- Made Mojito::Types into its own distribution (MooX::Types::MooseLike)
-		  and use that instead
+          [Refinements]
+          - Made Mojito::Types into its own distribution (MooX::Types::MooseLike)
+            and use that instead
 
 0.11      2011-07-07 21:36:14 America/Denver
           [Enchantments]

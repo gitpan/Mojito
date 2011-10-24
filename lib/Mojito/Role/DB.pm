@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Role::DB;
-BEGIN {
-  $Mojito::Role::DB::VERSION = '0.12';
+{
+  $Mojito::Role::DB::VERSION = '0.13';
 }
 use Moo::Role;
 use MongoDB;

@@ -1,8 +1,8 @@
 use strictures 1;
 
 package Mojito::Page::Git;
-BEGIN {
-  $Mojito::Page::Git::VERSION = '0.12';
+{
+  $Mojito::Page::Git::VERSION = '0.13';
 }
 use 5.010;
 use Moo;

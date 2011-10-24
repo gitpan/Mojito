@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Template::Role::Javascript;
-BEGIN {
-  $Mojito::Template::Role::Javascript::VERSION = '0.12';
+{
+  $Mojito::Template::Role::Javascript::VERSION = '0.13';
 }
 use Moo::Role;
 use MooX::Types::MooseLike qw(:all);

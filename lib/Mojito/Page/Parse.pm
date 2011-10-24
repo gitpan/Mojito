@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page::Parse;
-BEGIN {
-  $Mojito::Page::Parse::VERSION = '0.12';
+{
+  $Mojito::Page::Parse::VERSION = '0.13';
 }
 use 5.010;
 use Moo;
@@ -12,7 +12,7 @@ use Data::Dumper::Concise;
 # This is the page source
 has 'page' => (
     is       => 'rw',
-    isa      => NoRef,
+    isa      => Value,
 #    required => 1,
 );
 has 'sections' => (
@@ -37,7 +37,7 @@ has 'page_structure' => (
 #);
 has 'default_format' => (
     is => 'rw',
-    isa     => NoRef,
+    isa     => Value,
     lazy => 1,
     default => sub { 'HTML' },
 );
@@ -72,7 +72,7 @@ has 'messages' => (
 );
 has 'message_string' => (
     is => 'ro',
-    isa => NoRef,
+    isa => Value,
     lazy => 1,
     builder => '_build_message_string',
 );

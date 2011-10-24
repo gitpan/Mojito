@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito;
-BEGIN {
-  $Mojito::VERSION = '0.12';
+{
+  $Mojito::VERSION = '0.13';
 }
 use Moo;
 use Path::Class;

@@ -1,8 +1,8 @@
 use strictures 1;
 
 package Mojito::Auth;
-BEGIN {
-  $Mojito::Auth::VERSION = '0.12';
+{
+  $Mojito::Auth::VERSION = '0.13';
 }
 use Moo;
 use Digest::MD5;
@@ -18,31 +18,31 @@ with 'Mojito::Role::DB';
 
 has 'first_name' => (
     is  => 'ro',
-    isa => NoRef,
+    isa => Value,
 );
 has 'last_name' => (
     is  => 'ro',
-    isa => NoRef,
+    isa => Value,
 );
 has 'email' => (
     is  => 'ro',
-    isa => NoRef,
+    isa => Value,
 );
 has 'username' => (
     is  => 'ro',
-    isa => NoRef,
+    isa => Value,
 );
 has 'realm' => (
     is  => 'ro',
-    isa => NoRef,
+    isa => Value,
 );
 has 'password' => (
     is  => 'ro',
-    isa => NoRef,
+    isa => Value,
 );
 has 'env' => (
     is  => 'ro',
-    isa => NoRef,
+    isa => Value,
 );
 has 'digest_authen_cb' => (
     is      => 'ro',

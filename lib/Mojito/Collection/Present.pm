@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Collection::Present;
-BEGIN {
-  $Mojito::Collection::Present::VERSION = '0.12';
+{
+  $Mojito::Collection::Present::VERSION = '0.13';
 }
 use Moo;
 use MooX::Types::MooseLike qw(:all);
@@ -22,7 +22,7 @@ sub _build_collection {
 
 has 'collection_id' => (
     is => 'ro',
-    isa => NoRef,
+    isa => Value,
     required => 1,
 );
 
