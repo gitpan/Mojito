@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Template::Role::Javascript;
 {
-  $Mojito::Template::Role::Javascript::VERSION = '0.13';
+  $Mojito::Template::Role::Javascript::VERSION = '0.14';
 }
 use Moo::Role;
 use MooX::Types::MooseLike qw(:all);
@@ -22,7 +22,6 @@ sub _build_javascripts {
           'javascript/render_page.js',
           'javascript/style.js',
           'javascript/publish.js',
-          'javascript/style.js',
           'syntax_highlight/prettify.js',
           'jquery/autoresize_min.js',
           'jquery/jquery-ui-1.8.11.custom.min.js',

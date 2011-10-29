@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Model::Link;
 {
-  $Mojito::Model::Link::VERSION = '0.13';
+  $Mojito::Model::Link::VERSION = '0.14';
 }
 use Moo;
 use Mojito::Model::Doc;
@@ -114,14 +114,14 @@ sub get_link_data {
     return $link_data;
 }
 
-=head2 get_most_recent_links
+=head2 get_recent_links
 
 Turn the data into HTML
 $args should be a HashRef of options
 
 =cut
 
-sub get_most_recent_links {
+sub get_recent_links {
     my ($self, $args) = @_;
 
     # Let's limit the amount of recent links we show

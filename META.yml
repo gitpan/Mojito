@@ -46,9 +46,10 @@ requires:
   MongoDB::OID: 0
   Moo: 0
   Moo::Role: 0
-  MooX::Types::MooseLike: 0
+  MooX::Types::MooseLike: 0.02
   Path::Class: 0
   Plack::Middleware: 0
+  Plack::Util::Accessor: 0
   Pod::Simple::XHTML: 0
   Sub::Quote: 0
   Text::Markdown: 0
@@ -59,4 +60,4 @@ requires:
   parent: 0
   perl: 5.010001
   strictures: 1
-version: 0.13
+version: 0.14

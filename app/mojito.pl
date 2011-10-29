@@ -1,14 +1,12 @@
-use Web::Simple 'MojitoApp';
+package MojitoApp;
+use Web::Simple;
 use Mojito;
 use Mojito::Auth;
+use Mojito::Model::Config;
 use JSON;
-
+use Plack::Builder;
 use Data::Dumper::Concise;
-
-{
-    package MojitoApp;
-    use Plack::Builder;
-
+    
     sub dispatch_request {
         my ( $self, $env ) = @_;
         my $mojito = $env->{mojito};
@@ -240,12 +238,10 @@ use Data::Dumper::Concise;
               secret => Mojito::Auth::_secret,
               password_hashed => 1,
               authenticator => Mojito::Auth->new->digest_authen_cb;
-            enable "+Mojito::Middleware";
+            enable "+Mojito::Middleware", config => Mojito::Model::Config->new->config;
             enable_if { $ENV{RELEASE_TESTING}; } "+Mojito::Middleware::TestDB";
-
             $app;
         };
     };
-}
 
-MojitoApp->run_if_script;
+__PACKAGE__->run_if_script;

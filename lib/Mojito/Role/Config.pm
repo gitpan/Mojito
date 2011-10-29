@@ -1,60 +1,91 @@
 use strictures 1;
 package Mojito::Role::Config;
 {
-  $Mojito::Role::Config::VERSION = '0.13';
+  $Mojito::Role::Config::VERSION = '0.14';
 }
 use Moo::Role;
-use MooX::Types::MooseLike qw(:all);
+use MooX::Types::MooseLike 0.02 qw(HashRef);
 use Cwd qw/ abs_path /;
 use Dir::Self;
 
 has 'config' => (
-    is  => 'ro',
+    is  => 'rw',
     isa => HashRef,
     lazy => 1,
     builder => '_build_config',
 );
 
-=head2 get_config
+=head2 _build_config
 
-Read the configuration file.  (technique pilfered from Mojo::Server::Hypntoad).
+Construct the configuration file.
 Config file is looked for in three locations:
 
     ENV
     lib/Mojito/conf/mojito_local.conf
     lib/Mojito/conf/mojito.conf
 
-The first location that exists is used.
-NOTE: This means the configuration is not the UNION of all available config files.
+    The values will be merged with the precedent order being:
+    ENV over
+    mojito_local.conf over
+    mojito.conf
 
 =cut
 
 sub _build_config {
+    my ($self) = @_;
 
-    my $conf_file  = abs_path(__DIR__ . '/../conf/mojito.conf');
-    my $local_conf = abs_path(__DIR__ . '/../conf/mojito_local.conf');
-    # See if a local conf exists
-    if (-r $local_conf) {
-        $conf_file = $local_conf;
-    }
+    my $conf_file       = abs_path(__DIR__ . '/../conf/mojito.conf');
+    my $local_conf_file = abs_path(__DIR__ . '/../conf/mojito_local.conf');
+    my $env_conf_file   = $ENV{MOJITO_CONFIG};
 
-    # Allow an ENV to take precedent.
-    my $file = $ENV{MOJITO_CONFIG} || $conf_file;
+    my $conf       = $self->read_config($conf_file);
+    my $local_conf = $self->read_config($local_conf_file);
+    my $env_conf   = $self->read_config($env_conf_file);
 
-    # Config
+    # The merge happens in pairs
+    my $merged_conf = $self->merge_hash($local_conf, $conf);
+       $merged_conf = $self->merge_hash($env_conf, $merged_conf);
+    return $merged_conf;
+}
+
+=head2 read_config
+
+    Args: a configuration file name
+    Returns: a HashRef of configuration values
+
+=cut
+
+sub read_config {
+    my ($self, $conf_file) = @_;
+
     my $config = {};
-    if ( -r $file ) {
-        unless ( $config = do $file ) {
-            die qq/Can't load config file "$file": $@/ if $@;
-            die qq/Can't load config file "$file": $!/ unless defined $config;
-            die qq/Config file "$file" did not return a hashref.\n/
-              unless ref $config eq 'HASH';
+    if ( $conf_file && -r $conf_file ) {
+        if ( not $config = do $conf_file ) {
+            die qq/Can't do config file "$conf_file" EXCEPTION: $@/ if $@;
+            die qq/Can't do config file "$conf_file" UNDEFINED: $!/ if not defined $config;
         }
     }
 
     # Let's add in the version number.
     $config->{VERSION} = $Mojito::Role::Config::VERSION || 'development version';
+
     return $config;
 }
 
-1
+=head2 merge_hash
+
+    Args: ($hash_ref_dominant, $hash_ref_subordinate)
+    Returns: HashRef of the two merged with the dominant values
+    chosen when they exist otherwise the subordinate values are used.
+
+=cut
+
+sub merge_hash {
+    my ($self, $precedent, $subordinate) = @_;
+    my @not = grep !exists $precedent->{$_}, keys %{$subordinate};
+    @{$precedent}{@not} = @{$subordinate}{@not};
+    return $precedent;
+}
+
+
+1;

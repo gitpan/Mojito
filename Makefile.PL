@@ -54,9 +54,10 @@ my %WriteMakefileArgs = (
     "MongoDB::OID" => 0,
     "Moo" => 0,
     "Moo::Role" => 0,
-    "MooX::Types::MooseLike" => 0,
+    "MooX::Types::MooseLike" => "0.02",
     "Path::Class" => 0,
     "Plack::Middleware" => 0,
+    "Plack::Util::Accessor" => 0,
     "Pod::Simple::XHTML" => 0,
     "Sub::Quote" => 0,
     "Text::Markdown" => 0,
@@ -67,7 +68,7 @@ my %WriteMakefileArgs = (
     "parent" => 0,
     "strictures" => 1
   },
-  "VERSION" => "0.13",
+  "VERSION" => "0.14",
   "test" => {
     "TESTS" => "t/*.t"
   }

@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page;
 {
-  $Mojito::Page::VERSION = '0.13';
+  $Mojito::Page::VERSION = '0.14';
 }
 use Moo;
 use Sub::Quote qw(quote_sub);
@@ -30,6 +30,8 @@ use Mojito::Page::Publish;
 use Mojito::Template;
 use Mojito::Model::Link;
 use Mojito::Collection::CRUD;
+
+with 'Mojito::Role::Config';
 
 # roles
 
@@ -104,7 +106,7 @@ has linker => (
     isa     => sub { die "Need a Link Model object" unless $_[0]->isa('Mojito::Model::Link') },
     handles => [
         qw(
-            get_most_recent_links
+            get_recent_links
             get_feed_links
             view_collections_index
             view_collection_nav
@@ -146,16 +148,19 @@ Create the handler objects
 sub BUILD {
     my $self                  = shift;
     my $constructor_args_href = shift;
+    
+    # Pass the config to the delegatees so they don't have to build it.
+    $constructor_args_href->{config} = $self->config;
 
     # pass the options into the subclasses
     $self->_build_parse(Mojito::Page::Parse->new($constructor_args_href));
     $self->_build_render(Mojito::Page::Render->new($constructor_args_href));
-    $self->_build_edit(Mojito::Page::CRUD->new( $constructor_args_href));
-    $self->_build_collect(Mojito::Collection::CRUD->new( $constructor_args_href));
-    $self->_build_git(Mojito::Page::Git->new( $constructor_args_href));
-    $self->_build_template(Mojito::Template->new( $constructor_args_href));
-    $self->_build_link(Mojito::Model::Link->new( $constructor_args_href));
-    $self->_build_publish(Mojito::Page::Publish->new( $constructor_args_href));
+    $self->_build_edit(Mojito::Page::CRUD->new($constructor_args_href));
+    $self->_build_collect(Mojito::Collection::CRUD->new($constructor_args_href));
+    $self->_build_git(Mojito::Page::Git->new($constructor_args_href));
+    $self->_build_template(Mojito::Template->new($constructor_args_href));
+    $self->_build_link(Mojito::Model::Link->new($constructor_args_href));
+    $self->_build_publish(Mojito::Page::Publish->new($constructor_args_href));
 }
 
 1
