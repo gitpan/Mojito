@@ -2,7 +2,7 @@ use strictures 1;
 
 package Mojito::Page::Git;
 {
-  $Mojito::Page::Git::VERSION = '0.14';
+  $Mojito::Page::Git::VERSION = '0.15';
 }
 use 5.010;
 use Moo;
@@ -61,7 +61,7 @@ sub commit_page {
 
     $self->git->add( {}, ${page_id} );
     if ( $params->{username} ) {
-        if ( my $auth = Mojito::Auth->new( username => $params->{username} ) ) {
+        if ( my $auth = Mojito::Auth->new( config => $self->config, username => $params->{username} ) ) {
             if ( my $user = $auth->get_user ) {
                 my $name = $user->{first_name} . ' ' . $user->{last_name};
                 $self->git->config( 'user.name',  $name );

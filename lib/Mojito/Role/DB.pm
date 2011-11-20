@@ -1,72 +1,13 @@
 use strictures 1;
 package Mojito::Role::DB;
 {
-  $Mojito::Role::DB::VERSION = '0.14';
+  $Mojito::Role::DB::VERSION = '0.15';
 }
 use Moo::Role;
-use MongoDB;
+use Mojito::Model::Config;
 
-# Create a database and get a handle on a users collection.
-has 'conn' => (
-    is => 'ro',
-    lazy => 1,
-    builder => '_build_conn',
-);
-has 'db_name' => (
-    is => 'rw',
-    lazy => 1,
-    default => sub { 'mojito' },
-    clearer => 'clear_db_name',
-);
-has 'db' => (
-    is => 'ro',
-    lazy => 1,
-    builder => '_build_db',
-    clearer => 'clear_db',
-);
-has 'collection' => (
-    is => 'ro',
-    lazy => 1,
-    builder => '_build_collection',
-    clearer => 'clear_collection',
-);
-has 'collection_name' => (
-    is => 'rw',
-    lazy => 1,
-    default => sub { 'notes' },
-    clearer => 'clear_collection_name',
-);
-has 'db_host' => (
-    is => 'ro',
-    lazy => 1,
-    default => sub { 'localhost:27017' },
-);
+my $doc_storage = ucfirst lc Mojito::Model::Config->new->config->{document_storage};
+my $Role = __PACKAGE__ . '::' . $doc_storage;
+with($Role);
 
-sub _build_conn {
-    MongoDB::Connection->new(host => $_[0]->db_host);
-}
-
-sub _build_db  {
-    my $self = shift;
-    my $db_name = $self->db_name;
-    $self->conn->${db_name};
-}
-sub _build_collection  {
-    my $self = shift;
-    my $collection_name = $self->collection_name;
-    $self->db->${collection_name};
-}
-
-=head1 Methods
-
-=head2 BUILD
-
-Set a test DB when RELEASE_TESTING
-
-=cut
-
-sub BUILD {
-    my ($self) = (shift);
-    $self->db_name('mojito_test') if $ENV{RELEASE_TESTING};
-}
 1;

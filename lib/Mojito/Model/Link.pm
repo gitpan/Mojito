@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Model::Link;
 {
-  $Mojito::Model::Link::VERSION = '0.14';
+  $Mojito::Model::Link::VERSION = '0.15';
 }
 use Moo;
 use Mojito::Model::Doc;
@@ -15,6 +15,8 @@ has base_url => ( is => 'rw', );
 has name_of_page_collection => (
     is => 'rw',
 );
+
+has db => (is => 'ro', lazy => 1);
 
 has doc => (
     is      => 'ro',
@@ -93,18 +95,17 @@ Given a MongoDB cursor OR ArrayRef of documents then create the link data.
 
 sub get_link_data {
     my ($self, $cursor) = @_;
-
     my $link_data;
     if ( ref($cursor) eq 'MongoDB::Cursor' ) {
         while ( my $doc = $cursor->next ) {
-            my $title = $doc->{title} || $doc->{collection_name} || 'no title';
+            my $title = $doc->{title}||$doc->{collection_name}||'no title';
             push @{$link_data}, { id => $doc->{'_id'}->value, title => $title };
         }
     }
     elsif ( ref($cursor) eq 'ARRAY' ) {
         foreach my $doc (@{$cursor}) {
-            my $title = $doc->{title}  || 'no title';
-            push @{$link_data}, { id => $doc->{'_id'}, title => $title };
+            my $title = $doc->{title}||$doc->{collection_name}||'no title';
+            push @{$link_data}, { id => $doc->{'_id'}||$doc->{id}, title => $title };
         }
     }
     else {
@@ -262,7 +263,7 @@ EOH
 
 =head2 view_collections_index
 
-Get the links for the documents belonging to a particular feed.
+List the existing collections
 
 =cut
 
@@ -339,7 +340,7 @@ but in a more general manner than create_list_of_links().
 
 sub create_generic_list_of_links {
     my ($self, $link_data, $args) = @_;
-
+    
     my $base_url = $self->base_url;
     my $route = $args->{route}||die 'Need a route to create a generic list of links';
     # make sure $route doesn't start with a '/'
@@ -361,7 +362,9 @@ sub view_collection_nav {
     my ($self, $params) = @_;
     
     # Obtain focus point.
-    my $presenter = Mojito::Collection::Present->new( 
+    my $presenter = Mojito::Collection::Present->new(
+        config        => $self->config,
+        db            => $self->db, 
         collection_id => $params->{collection_id}, 
         focus_page_id => $params->{page_id},
     );

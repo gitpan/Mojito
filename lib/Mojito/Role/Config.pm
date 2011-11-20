@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Role::Config;
 {
-  $Mojito::Role::Config::VERSION = '0.14';
+  $Mojito::Role::Config::VERSION = '0.15';
 }
 use Moo::Role;
 use MooX::Types::MooseLike 0.02 qw(HashRef);
@@ -33,7 +33,7 @@ Config file is looked for in three locations:
 
 sub _build_config {
     my ($self) = @_;
-
+    warn "BUILD CONFIG" if $ENV{MOJITO_DEBUG};
     my $conf_file       = abs_path(__DIR__ . '/../conf/mojito.conf');
     my $local_conf_file = abs_path(__DIR__ . '/../conf/mojito_local.conf');
     my $env_conf_file   = $ENV{MOJITO_CONFIG};

@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page::Render;
 {
-  $Mojito::Page::Render::VERSION = '0.14';
+  $Mojito::Page::Render::VERSION = '0.15';
 }
 use 5.010;
 use Moo;
@@ -9,7 +9,7 @@ use Mojito::Template;
 use Mojito::Filter::Shortcuts;
 use Mojito::Filter::MojoMojo::Converter;
 use Text::Textile;
-use Text::Markdown;
+use Text::MultiMarkdown;
 use Text::WikiCreole;
 use Pod::Simple::XHTML;
 use HTML::Strip;
@@ -32,7 +32,7 @@ has textile => (
 has markdown => (
     is => 'ro',
     lazy => 1,
-    'default' => sub { return Text::Markdown->new }
+    'default' => sub { return Text::MultiMarkdown->new }
 );
 
 has base_url => ( is => 'rw', );
@@ -106,7 +106,7 @@ sub render_page {
     # Insert rendered page into view area
     $page =~ s/(<section id="view_area"[^>]*>).*?(<\/section>)/$1${rendered_body}$2/si;
 
-    if ( my $id = $doc->{'_id'} ) {
+    if ( my $id = $doc->{'_id'}||$doc->{id} ) {
         $page =~ s/(<nav id="edit_link"[^>]*>).*?(<\/nav>)/$1<a href="${base_url}page\/${id}\/edit">Edit<\/a>$2/sig;
     }
 

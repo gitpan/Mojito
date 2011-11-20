@@ -1,9 +1,10 @@
 use strictures 1;
 package Mojito::Template;
 {
-  $Mojito::Template::VERSION = '0.14';
+  $Mojito::Template::VERSION = '0.15';
 }
 use Moo;
+use 5.010;
 use MooX::Types::MooseLike qw(:all);
 use Mojito::Model::Link;
 use Mojito::Collection::CRUD;
@@ -23,7 +24,25 @@ has 'page_id' => (
     is => 'rw',
 );
 
+# Allow Template to receive a db attribute upon construction
+# currently it's passed to the $mojito->tmpl handler
+has 'db' => ( is => 'ro', lazy => 1);
+
 has 'base_url' => ( is => 'rw', );
+
+has linker => (
+    is      => 'ro',
+    isa     => sub { die "Need a Link Model object.  Have ref($_[0]) instead." unless $_[0]->isa('Mojito::Model::Link') },
+    lazy    => 1,
+    handles => {
+        recent_links_view            => 'get_recent_links',
+        collection_page_view         => 'view_collection_page',
+        select_collection_pages_view => 'view_selectable_page_list',
+        sort_collection_pages_view   => 'view_sortable_page_list',
+        collections_index_view       => 'view_collections_index',
+    },
+    writer => '_set_linker',
+);
 
 has 'home_page' => (
     is      => 'rw',
@@ -49,6 +68,11 @@ has 'recent_links' => (
     builder => '_build_recent_links',
 );
 
+has 'wiki_language_selection' => (
+    is      => 'ro',
+    lazy    => 1,
+    builder => '_build_wiki_language_selection',
+);
 has js_css_html => (
     is => 'ro',
     isa => Value,
@@ -67,6 +91,7 @@ sub _build_template {
 
     my $base_url  = $self->base_url;
     my $mojito_version = $self->config->{VERSION};
+    my $wiki_language_selection = $self->wiki_language_selection;
     my $js_css = $self->js_css_html;
     my $page_id = $self->page_id||'';
     my $publisher = Mojito::Page::Publish->new(config => $self->config);
@@ -95,10 +120,7 @@ $js_css
 <section id="edit_area">
 <form id="editForm" action="" accept-charset="UTF-8" method="post">
     <div id="wiki_language">
-        <input type="radio" id="textile"  name="wiki_language" value="textile" checked="checked" /><label for="textile">textile</label>
-        <input type="radio" id="markdown" name="wiki_language" value="markdown" /><label for="markdown">markdown</label>
-        <input type="radio" id="creole"   name="wiki_language" value="creole" /><label for="creole">creole</label>
-        <input type="radio" id="html"     name="wiki_language" value="html" /><label for="html">html</label>
+        $wiki_language_selection
     </div>
     <input id="mongo_id" name="mongo_id" type="hidden" form="editForm" value="" />
     <input id="wiki_language" name="wiki_language" type="hidden" form="editForm" value="" />
@@ -131,6 +153,22 @@ END_HTML
     $edit_page =~ s/<script><\/script>/<script>mojito.base_url = '${base_url}';<\/script>/s;
     return $edit_page;
 }
+
+sub _build_wiki_language_selection {
+    my ($self) = @_;
+    
+    my $selection;
+    my $default_wiki_language =$self->config->{default_wiki_language}||'markdown';
+    foreach my $language (qw/textile markdown creole html pod/) {
+        if ($language =~ m/$default_wiki_language/) {
+            $selection .= qq{<input type="radio" id="$language"  name="wiki_language" value="$language" checked="checked" /><label for="$language">$language</label>};
+        }
+        else {
+            $selection .= qq{<input type="radio" id="$language"  name="wiki_language" value="$language" /><label for="$language">$language</label>};
+        }
+    }
+    return $selection;
+ }
 
 
 sub page_wrap_start {
@@ -176,26 +214,24 @@ Wrap a page body with start and end HTML.
 
 sub wrap_page {
     my ($self, $page_body, $title) = @_;
-    $title ||= 'Mojito page';
+    $title //= 'Mojito page';
+    $page_body //= 'Empty page';
     return ($self->page_wrap_start($title) . $page_body . $self->page_wrap_end);
 }
 
 sub _build_collect_page_form {
     my $self = shift;
-    my $list = Mojito::Model::Link->new(base_url => $self->base_url);
-    return $self->wrap_page($list->view_selectable_page_list);
+    return $self->wrap_page($self->select_collection_pages_view);
 }
 
 sub _build_collections_index {
     my $self = shift;
-    my $list = Mojito::Model::Link->new(base_url => $self->base_url);
-    return $self->wrap_page($list->view_collections_index);
+    return $self->wrap_page($self->collections_index_view);
 }
 
 sub _build_recent_links {
     my $self = shift;
-    my $list = Mojito::Model::Link->new(base_url => $self->base_url);
-    return $self->wrap_page($list->get_recent_links({want_delete_link => 1}));
+    return $self->wrap_page($self->recent_links_view({want_delete_link => 1}));
 }
 
 =head2 sort_collection_form
@@ -206,8 +242,7 @@ A form to sort a collection of pages.
 
 sub sort_collection_form {
     my ($self, $params) = (shift, shift);
-    my $list = Mojito::Model::Link->new(base_url => $self->base_url);
-    return $self->wrap_page($list->view_sortable_page_list({ collection_id => $params->{id} }));
+    return $self->wrap_page($self->sort_collection_pages_view({ collection_id => $params->{id} }));
 }
 
 =head2 collection_page
@@ -221,10 +256,9 @@ sub collection_page {
 
     my $base_url = $self->base_url;
     $base_url .= 'public/' if $params->{public};
-    my $list = Mojito::Model::Link->new(base_url => $base_url);
-    my $collector = Mojito::Collection::CRUD->new;
+    my $collector = Mojito::Collection::CRUD->new(config => $self->config, db => $self->db);
     my $collection = $collector->read( $params->{id} );
-    return $self->wrap_page($list->view_collection_page({ collection_id => $params->{id} }), $collection->{collection_name});
+    return $self->wrap_page($self->collection_page_view({ collection_id => $params->{id} }), $collection->{collection_name});
 }
 
 sub _build_home_page {
@@ -351,4 +385,11 @@ s/<script><\/script>/<script>mojito.preview_url = '${base_url}preview'<\/script>
     return $output;
 }
 
+sub BUILD {
+    my $self                  = shift;
+    my $constructor_args_href = shift;
+
+    # pass the options into the delegatees
+    $self->_set_linker(Mojito::Model::Link->new($constructor_args_href));
+}
 1

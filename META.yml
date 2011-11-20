@@ -18,12 +18,11 @@ build_requires:
   Test::Exception: 0
   Test::More: 0
   strict: 0
-  utf8: 0
   warnings: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.300002, CPAN::Meta::Converter version 2.112150'
+generated_by: 'Dist::Zilla version 4.300003, CPAN::Meta::Converter version 2.112150'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -31,6 +30,7 @@ meta-spec:
 name: Mojito
 requires:
   Cwd: 0
+  DBM::Deep: 0
   Data::Dumper::Concise: 0
   Digest::MD5: 0
   Dir::Self: 0
@@ -42,6 +42,7 @@ requires:
   HTML::Zoom: 0
   IO::File: 0
   List::MoreUtils: 0
+  List::Util: 0
   MongoDB: 0
   MongoDB::OID: 0
   Moo: 0
@@ -52,7 +53,7 @@ requires:
   Plack::Util::Accessor: 0
   Pod::Simple::XHTML: 0
   Sub::Quote: 0
-  Text::Markdown: 0
+  Text::MultiMarkdown: 0
   Text::Textile: 0
   Text::WikiCreole: 0
   Try::Tiny: 0
@@ -60,4 +61,5 @@ requires:
   parent: 0
   perl: 5.010001
   strictures: 1
-version: 0.14
+  utf8: 0
+version: 0.15

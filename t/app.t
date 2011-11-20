@@ -27,8 +27,8 @@ BEGIN {
 
 }
 my %framework_scripts = (
-    dancer     => 'dancer.pl',
     web_simple => 'mojito.pl',
+    dancer     => 'dancer.pl',
     mojo       => 'mojo.pl',
     tatsumaki  => 'tatsumaki.psgi'
 );

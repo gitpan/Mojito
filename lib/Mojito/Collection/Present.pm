@@ -1,12 +1,16 @@
 use strictures 1;
 package Mojito::Collection::Present;
 {
-  $Mojito::Collection::Present::VERSION = '0.14';
+  $Mojito::Collection::Present::VERSION = '0.15';
 }
 use Moo;
 use MooX::Types::MooseLike qw(:all);
 use Mojito::Collection::CRUD;
 use List::MoreUtils qw/ first_index /;
+
+has db => (is => 'ro', lazy => 1);
+
+has config => (is => 'ro', lazy => 1);
 
 has 'collection' => (
     is => 'ro',
@@ -17,7 +21,7 @@ has 'collection' => (
 sub _build_collection {
     my $self = shift;
     die "Must have collection id" if !$self->collection_id;
-    return Mojito::Collection::CRUD->new->read($self->collection_id);
+    return Mojito::Collection::CRUD->new(config => $self->config, db => $self->db)->read($self->collection_id);
 }
 
 has 'collection_id' => (
@@ -94,7 +98,7 @@ sub _build_next_page_route {
     # Are we focused on last => index
     # Are we focused on any other page => focus + 1
     my $focus = $self->focus_page_number;
-warn "index page id empty: " if !$self->index_page_id;
+    warn "index page id empty: " if !$self->index_page_id;
     my $collection_route = 'collection/' . $self->index_page_id;
     my $next;
     if ($focus == -1) {
@@ -159,7 +163,7 @@ has 'index_page_id' => (
     lazy => 1,
     builder => '_build_index_page_id',
 );
-sub _build_index_page_id { $_[0]->collection->{_id} }
+sub _build_index_page_id { $_[0]->collection->{_id}||$_[0]->collection->{id} }
 
 has 'index_page_number' => (
     is => 'ro',
