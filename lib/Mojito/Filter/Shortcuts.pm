@@ -1,10 +1,11 @@
 use strictures 1;
 package Mojito::Filter::Shortcuts;
 {
-  $Mojito::Filter::Shortcuts::VERSION = '0.15';
+  $Mojito::Filter::Shortcuts::VERSION = '0.16';
 }
 use Moo::Role;
 use MooX::Types::MooseLike qw(:all);
+use Mojito::Model::MetaCPAN;
 use 5.010;
 use Data::Dumper::Concise;
 
@@ -18,7 +19,7 @@ has shortcuts => (
 );
 sub _build_shortcuts {
     my $self = shift;
-    my @shortcuts = qw( cpan_URL metacpan_module_URL metacpan_author_URL);
+    my @shortcuts = qw( cpan_URL metacpan_module_URL metacpan_author_URL internal_URL cpan_recent_synopses cpan_synopsis);
     push @shortcuts, 'fonality_ticket' if ($self->config->{fonality_ticket_url});
     return \@shortcuts;
 }
@@ -32,7 +33,7 @@ Expand the available shortcuts into the content.
 =cut
 
 sub expand_shortcuts {
-    my ($self, $content) = (shift, shift);
+    my ($self, $content) = @_;
     foreach my $shortcut ( @{$self->shortcuts} ) {
         $content = $self->${shortcut}(${content});
     }
@@ -52,6 +53,37 @@ sub cpan_URL {
     return $content;
 }
 
+has metacpan => (
+    is => 'ro',
+    lazy => 1,
+    default => sub { Mojito::Model::MetaCPAN->new },
+);
+
+=head2 cpan_synopsis
+
+Show the CPAN SYNOPSIS for a Perl Module
+
+=cut
+
+sub cpan_synopsis {
+    my ($self, $content) = @_;
+    return if !$content;
+    $content =~ s/{{cpan.synopsis\s+([^}]*)}}/$self->metacpan->get_synopsis_formatted($1, 'presentation')/esig;
+    return $content;
+}
+
+=head2 cpan_recent_synopses
+
+Show the synopses of the CPAN recent releases
+
+=cut
+
+sub cpan_recent_synopses {
+    my ($self, $content) = @_;
+    return if !$content;
+    $content =~ s/{{cpan.synopses.recent\s*(\d+)}}/$self->metacpan->get_recent_synopses($1)/esig;
+    return $content;
+}
 =head2 metacpan_module_URL
 
 Expand the cpan abbreviated shortcut.
@@ -76,6 +108,38 @@ sub metacpan_author_URL {
     $content =~ s|{{authmeta\s+([^}]*)}}|<a href="http://metacpan.org/author/$1">$1</a>|sig;
     return $content;
 }
+
+
+=head2 internal_URL
+
+Expand an internal URL
+
+=cut
+
+sub internal_URL {
+    my ($self, $content) = @_;
+    return if !$content;
+    my ($base_url, $path_info, $http_referer, $http_host) = @{$self->config}{qw/base_url PATH_INFO HTTP_REFERER HTTP_HOST/};
+    my $add_link = sub {
+        my ($link, $title) = @_;
+        # Strip ending slash as we only append the base_url to link starting with a slash
+        $base_url =~ s|/$||;
+        if ($link !~ m|^/|) {
+            # If we have a path_info of /preview then we want to use the
+            # referred instead as the path_info.
+            if ($path_info eq '/preview') {
+                # create path info from where the post came
+                ($path_info) = $http_referer =~ m|${http_host}${base_url}(.*)/edit$|;
+            } 
+            $path_info = ($path_info =~ m|/$|) ? $path_info : $path_info . '/'; 
+            $base_url .= $path_info;
+        }
+        return "<a href='${base_url}${link}'>${title}</a>";
+    };
+    $content =~ s/\[\[([^\|]*)\|([^\]]*)\]\]/$add_link->($1,$2)/esig;
+    return $content;
+}
+
 =head2 fonality_ticket
 
 Expand the fonality ticket abbreviated shortcut.

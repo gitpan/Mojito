@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Auth::Deep;
 {
-  $Mojito::Auth::Deep::VERSION = '0.15';
+  $Mojito::Auth::Deep::VERSION = '0.16';
 }
 use Moo;
 use Mojito::Page::CRUD::Deep;

@@ -2,6 +2,9 @@
     background-color: #87a865;
     margin: 5px;
 }
+.vanilla_body {
+    background-color: sienna;
+}
 
 #wiki_language {
     font-size: 66.7%;
@@ -17,13 +20,23 @@ h1 {
 }
 
 #body_wrapper {
-    float: left;
+    float: left; 
     width: 98%;
     margin: auto;
-    padding-left: 1em;
+    left-padding: 0.5em;
     background-color: white;
     -moz-border-radius: 10px;
     border-radius: 10px;
+}
+
+#body_wrapper_vanilla {
+    width: 99%;
+    margin: auto;
+    padding: 0.2em;
+    background-color: white;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    border: 0px solid #f3f3f3;
 }
 
 #edit_area {
@@ -63,6 +76,15 @@ h1 {
     /*    background-color: #cafc97;
     -moz-border-radius: 10px;
     border-radius: 10px; */
+}
+
+#calendar_area {
+    float: right;
+    border-bottom: 1px dotted #888;
+    border-left: 1px dotted #888;
+    border-top: 1px dotted #888;
+    padding-left: 0.5em;
+    width: 100%;
 }
 
 #selectable_page_list .ui-selecting {
@@ -130,9 +152,10 @@ nav {
 
 /* Wrap text in pre's */
 pre.prettyprint {
+    display: inline-block;
     overflow: auto;
     overflow-x: auto;
-    /* Use horizontal scroller if needed; for Firefox 2, not
+    /* Use horizontal scroller if needed; for Firefox 2, not */
     white-space: pre-wrap; /* css-3 */
     white-space: -moz-pre-wrap !important; /* Mozilla, since 1999 */
     word-wrap: break-word; /* Internet Explorer 5.5+ */
@@ -199,4 +222,41 @@ div.note {
     -moz-border-radius: 5px;
     border-radius: 5px;
     font-size: 1.08em;
+}
+
+table.monthly_calendar {
+  border: 0px solid #cccccc;
+  width: 100%;
+  margin: auto;
+  border-collapse:collapse;
+  -moz-border-radius: 10px;
+  border-radius: 10px;
+  margin-bottom: 1em;
+}    
+th.previous {
+     text-align:left;
+     font-size: 92%;
+}
+th.next {
+     text-align:right;
+     font-size: 92%;
+}
+th.calendar_month {
+    font-size: 108%;
+}
+th.weekdays {
+    width: 80px;
+    text-align: center;
+    border: 1px solid #dddddd;
+    background-color: #FEC0A3; /* wheat */
+}
+table.monthly_calendar td {
+   height:80px;
+   vertical-align:top;
+   border: 1px solid #dddddd;
+}
+
+table.header {
+    width: 100%;
+    border-collapse:collapse;
 }

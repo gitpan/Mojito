@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page;
 {
-  $Mojito::Page::VERSION = '0.15';
+  $Mojito::Page::VERSION = '0.16';
 }
 use Moo;
 use Sub::Quote qw(quote_sub);
@@ -70,6 +70,7 @@ has editer => (
             update
             delete
             db
+            collection
           )
     ],
     writer => '_build_edit',
@@ -96,6 +97,7 @@ has tmpl => (
           sort_collection_form
           fillin_create_page
           fillin_edit_page
+          calendar_month_page
           wrap_page
           )
     ],

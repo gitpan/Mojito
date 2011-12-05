@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Template::Role::Javascript;
 {
-  $Mojito::Template::Role::Javascript::VERSION = '0.15';
+  $Mojito::Template::Role::Javascript::VERSION = '0.16';
 }
 use Moo::Role;
 use MooX::Types::MooseLike qw(:all);
@@ -33,6 +33,7 @@ sub _build_javascripts {
           'SHJS/sh_sql.min.js',
           'SHJS/sh_sh.min.js',
           'SHJS/sh_diff.min.js',
+          'SHJS/sh_haskell.min.js',
        ];
 }
 

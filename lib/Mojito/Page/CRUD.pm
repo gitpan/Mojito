@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page::CRUD;
 {
-  $Mojito::Page::CRUD::VERSION = '0.15';
+  $Mojito::Page::CRUD::VERSION = '0.16';
 }
 use Mojito::Page::CRUD::Mongo;
 use Mojito::Page::CRUD::Deep;
@@ -11,8 +11,10 @@ has 'editer' => (
     is => 'ro',
     lazy => 1,
     writer => '_set_editer',
-    handles =>  [ qw( create read update delete db ) ],
+    handles =>  [ qw( create read update delete db collection get_all ) ],
 );
+
+has 'config' => ( is => 'ro', required => 1);
 
 sub BUILD {
     my ($self, $constructor_args_href) = @_;

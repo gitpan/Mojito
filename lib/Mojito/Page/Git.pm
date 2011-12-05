@@ -2,7 +2,7 @@ use strictures 1;
 
 package Mojito::Page::Git;
 {
-  $Mojito::Page::Git::VERSION = '0.15';
+  $Mojito::Page::Git::VERSION = '0.16';
 }
 use 5.010;
 use Moo;

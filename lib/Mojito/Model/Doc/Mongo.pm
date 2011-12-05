@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Model::Doc::Mongo;
 {
-  $Mojito::Model::Doc::Mongo::VERSION = '0.15';
+  $Mojito::Model::Doc::Mongo::VERSION = '0.16';
 }
 use Moo;
 use MongoDB::OID;
@@ -81,6 +81,38 @@ sub get_collection_pages {
         push @pages, $page;
     }
    return ($collection->{collection_name}, \@pages); 
+}
+
+sub get_docs_for_month {
+    my ($self, $month, $year) = @_;
+
+    my %monthly_data = ();
+    my $start_epoch  = DateTime->new(
+        year   => $year,
+        month  => $month,
+        day    => 1,
+        hour   => 0,
+        minute => 0,
+        second => 0,
+    )->epoch;
+    my $next_month         = ($month == 12) ? 1         : $month + 1;
+    my $year_of_next_month = ($month == 12) ? $year + 1 : $year;
+    my $end_epoch          = DateTime->new(
+        year   => $year_of_next_month,
+        month  => $next_month,
+        day    => 1,
+        hour   => 0,
+        minute => 0,
+        second => 0,
+    )->epoch;
+    my $docs = $self->collection->find(
+        { 'last_modified' => { '$gte' => $start_epoch, '$lt' => $end_epoch } });
+    while (my $doc = $docs->next) {
+        my $day = DateTime->from_epoch(epoch => $doc->{last_modified})->day;
+        push @{ $monthly_data{$day} },
+          { id => $doc->{_id}->value, title => $doc->{title} };
+    }
+    return %monthly_data;
 }
 
 1

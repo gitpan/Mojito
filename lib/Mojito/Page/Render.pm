@@ -1,12 +1,11 @@
 use strictures 1;
 package Mojito::Page::Render;
 {
-  $Mojito::Page::Render::VERSION = '0.15';
+  $Mojito::Page::Render::VERSION = '0.16';
 }
 use 5.010;
 use Moo;
 use Mojito::Template;
-use Mojito::Filter::Shortcuts;
 use Mojito::Filter::MojoMojo::Converter;
 use Text::Textile;
 use Text::MultiMarkdown;
@@ -207,6 +206,9 @@ sub format_for_web {
         }
         when (/^diff$/i) {
             $formatted_content = "<pre class='sh_diff'>$content</pre>";
+        }
+        when (/^(haskell|hs)$/i) {
+            $formatted_content = "<pre class='sh_haskell'>$content</pre>";
         }
         when (/^sh_html$/i) {
             $formatted_content = "<pre class='sh_html'>$content</pre>";

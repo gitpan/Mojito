@@ -226,7 +226,20 @@ sub dispatch_request {
         my $JSON_response = JSON::encode_json($response_href);
         [ 200, [ 'Content-type', 'application/json' ], [$JSON_response] ];
       },
+      
+      sub ( GET + /calendar ) {
+        [ 200, ['Content-type', 'text/html'], [$mojito->calendar_month_page] ];
+      },
 
+      sub ( GET + /calendar/year/*/month/* ) {
+        my ($self, $year, $month) = @_;
+        my $params;
+        $params->{year} = $year;
+        $params->{month} = $month;
+        my $output = $mojito->calendar_month_page($params);
+        [ 200, ['Content-type', 'text/html'], [$output] ];
+      },
+    
       sub (GET + /hola/* ) {
         my ($self, $name) = @_;
         [ 200, [ 'Content-type', 'text/plain' ], ["Ola $name"] ];

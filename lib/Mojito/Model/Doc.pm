@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Model::Doc;
 {
-  $Mojito::Model::Doc::VERSION = '0.15';
+  $Mojito::Model::Doc::VERSION = '0.16';
 }
 use Mojito::Model::Doc::Mongo;
 use Mojito::Model::Doc::Deep;
@@ -12,7 +12,7 @@ has 'doc' => (
     is => 'ro',
     lazy => 1,
     writer => '_set_doc',
-    handles =>  [ qw( get_most_recent_docs get_feed_docs get_collections get_collection_pages) ],
+    handles =>  [ qw( get_most_recent_docs get_feed_docs get_collections get_collection_pages get_docs_for_month) ],
 );
 
 sub BUILD {

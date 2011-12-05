@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito;
 {
-  $Mojito::VERSION = '0.15';
+  $Mojito::VERSION = '0.16';
 }
 use Moo;
 use Path::Class;
@@ -10,6 +10,27 @@ use File::Spec;
 use Data::Dumper::Concise;
 
 extends 'Mojito::Page';
+
+=head1 Name
+
+Mojito - A Web Document System
+
+=head1 Synopsis
+
+  use Mojito::Model::Config;
+  my $mojito = Mojito->new(config => Mojito::Model::Config->new->config);
+  my $page_id = '123456781234567812345678';
+  my $rendered_page = $mojito->view_page({id => $page_id};
+
+  # You might want to checkout one of the applications in app/
+  # For example: 'plackup -Ilib app/mojito.pl' starts up a Web::Simple instance of Mojito
+
+=head1 Description
+
+Mojito is a web document system that enables individuals to easily author 
+HTML5 compliant documents.  It provides a source editor for various
+markup languages along with a near realtime view pane.  It allows for the
+intermixing of different source formats.
 
 =head1 Attributes
 
@@ -186,7 +207,9 @@ like the view_page() method is setup for public pages
 sub view_page_public {
     my ( $self, $params ) = @_;
     my $page          = $self->read( $params->{id} );
-    return $self->wrap_page($page->{body_html}, $page->{title});
+# TODO: Use body_html unless otherwise specified
+#    return $self->wrap_page($page->{body_html}, $page->{title});
+    return $self->wrap_page($self->render_body($page), $page->{title});
 }
 
 =head2 view_page_collected
@@ -520,33 +543,6 @@ BEGIN { require 5.010001; }
 
 1;
 __END__
-
-=head1 Name
-
-Mojito - A Lightweight Web Document System
-
-=cut
-
-=head1 Description
-
-Mojito is a web document system that allows one to author web pages.
-It has been inspired by MojoMojo which is a mature, stable, responsive and
-feature rich wiki system.  Check MojoMojo out if you're looking for an enterprise
-grade wiki.  Mojito is not attempting to be a wiki, but rather its initial
-goal is to enable individuals to easily author HTML5 compliant documents
-whether for personal or public consumption.
-
-=head1 Goals
-
-Mojito is in alpha stage so it has much growing to do.
-Some goals and guidelines are:
-
-    * Somewhat Framework Agnostic.  Currently there is support for
-      Web::Simple, Dancer, Mojo and Tatsumaki.
-    * Minimalistic Interface.  No Phluff or at least options to turn features off.
-    * A page engine that can standalone or potentially be plugged into MojoMojo.
-    * Exchange between MojoMojo and Mojito document formats.
-    * HTML5
 
 =head1 Current Limitations
 

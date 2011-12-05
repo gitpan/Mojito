@@ -31,6 +31,7 @@ files/SHJS/sh_diff.js
 files/SHJS/sh_diff.min.js
 files/SHJS/sh_emacs.css
 files/SHJS/sh_emacs.min.css
+files/SHJS/sh_haskell.min.js
 files/SHJS/sh_html.js
 files/SHJS/sh_html.min.js
 files/SHJS/sh_ide-anjuta.css
@@ -116,6 +117,7 @@ lib/Mojito/Model/Doc.pm
 lib/Mojito/Model/Doc/Deep.pm
 lib/Mojito/Model/Doc/Mongo.pm
 lib/Mojito/Model/Link.pm
+lib/Mojito/Model/MetaCPAN.pm
 lib/Mojito/Model/Shortcuts.pm
 lib/Mojito/Model/Transform.pm
 lib/Mojito/Page.pm
@@ -136,8 +138,11 @@ lib/Mojito/Template/Role/CSS.pm
 lib/Mojito/Template/Role/Javascript.pm
 lib/Mojito/Template/Zoom.pm
 lib/Mojito/conf/mojito.conf
+script/RecentSynopses.pm
+script/RenderMojoMojo.pm
 script/add_user.pl
 script/copy_collection.pl
+script/dump_schema.pl
 script/list_feeds_for.pl
 script/mongo2deep.pl
 script/wtf-gi.pl
@@ -146,7 +151,9 @@ t/app.t
 t/author-critic.t
 t/build_page_structure.t
 t/build_sections.t
+t/cpan.t
 t/data/Fixture.pm
+t/data_schema.t
 t/diff.t
 t/mojomojo_converter.pl
 t/page.t

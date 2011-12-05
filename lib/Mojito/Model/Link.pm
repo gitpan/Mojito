@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Model::Link;
 {
-  $Mojito::Model::Link::VERSION = '0.15';
+  $Mojito::Model::Link::VERSION = '0.16';
 }
 use Moo;
 use Mojito::Model::Doc;
@@ -28,6 +28,7 @@ has doc => (
           get_feed_docs
           get_collections
           get_collection_pages
+          get_docs_for_month
           )
     ],
     writer => '_build_doc',
