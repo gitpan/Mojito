@@ -1,11 +1,17 @@
 use strictures 1;
 package Mojito::Middleware;
 {
-  $Mojito::Middleware::VERSION = '0.16';
+  $Mojito::Middleware::VERSION = '0.17';
 }
 use parent qw(Plack::Middleware);
 use Plack::Util::Accessor qw/config/;
 use Mojito;
+
+=head1 Name
+
+Mojito::Middleware - gather some environment variables
+
+=cut
 
 # Let's gather some stuff from the environment
 # that we'd like to have access to in our app.

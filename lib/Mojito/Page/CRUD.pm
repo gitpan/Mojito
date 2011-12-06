@@ -1,11 +1,17 @@
 use strictures 1;
 package Mojito::Page::CRUD;
 {
-  $Mojito::Page::CRUD::VERSION = '0.16';
+  $Mojito::Page::CRUD::VERSION = '0.17';
 }
 use Mojito::Page::CRUD::Mongo;
 use Mojito::Page::CRUD::Deep;
 use Moo;
+
+=head1 Name
+
+Mojito::Page::CRUD - the CRUD delegator class
+
+=cut
 
 has 'editer' => (
     is => 'ro',

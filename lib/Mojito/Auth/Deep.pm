@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Auth::Deep;
 {
-  $Mojito::Auth::Deep::VERSION = '0.16';
+  $Mojito::Auth::Deep::VERSION = '0.17';
 }
 use Moo;
 use Mojito::Page::CRUD::Deep;
@@ -9,11 +9,18 @@ use List::Util qw/first/;
 
 with('Mojito::Role::DB::Deep');
 
+=head1 Name
+
+Mojito::Auth::Deep - authentication delegatee class for DBM::Deep
+
+=cut
+
 has editer => (
     is => 'ro',
     lazy => 1,
     default => sub { Mojito::Page::CRUD::Deep->new(collection_name => 'users') },
 );
+=head1 Methods
 
 =head2 add_user
 

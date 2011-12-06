@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Template;
 {
-  $Mojito::Template::VERSION = '0.16';
+  $Mojito::Template::VERSION = '0.17';
 }
 use Moo;
 use 5.010;
@@ -14,6 +14,12 @@ use DateTime;
 
 with('Mojito::Template::Role::Javascript');
 with('Mojito::Template::Role::CSS');
+
+=head1 Name
+
+Mojito::Template - the main HTML class
+
+=cut
 
 has 'template' => (
     is      => 'rw',

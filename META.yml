@@ -67,4 +67,4 @@ requires:
   perl: 5.010001
   strictures: 1
   utf8: 0
-version: 0.16
+version: 0.17

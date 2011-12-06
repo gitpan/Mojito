@@ -2,7 +2,7 @@ use strictures 1;
 
 package Mojito::Model::MetaCPAN;
 {
-  $Mojito::Model::MetaCPAN::VERSION = '0.16';
+  $Mojito::Model::MetaCPAN::VERSION = '0.17';
 }
 use Moo;
 use HTTP::Tiny;
@@ -33,12 +33,18 @@ has cache => (
     is      => 'rw',
     default => sub {
         CHI->new(
-            driver => 'Memory',
+#            driver => 'Memory',
             global => 1,
-#            driver   => 'File',
-#            root_dir => '/tmp/chi_cache',
+            driver   => 'File',
+            root_dir => '/tmp/chi_cache',
         );
     },
+);
+
+has not_found_string => (
+    is => 'rw',
+    lazy => 1,
+   'default' => sub { 'NOT FOUND' },
 );
 
 has markdown => (
@@ -62,11 +68,9 @@ sub get_synopsis {
 
     my $cache_key = "${Module}:SYNOPSIS";
     my $synopsis  = $self->cache->get($cache_key);
-    my $description;
     if (not $synopsis) {
         warn "GET $Module from CPAN" if $ENV{MOJITO_DEBUG};
-        ($description, $synopsis) = $self->get_synopsis_from_metacpan($Module);
-        $synopsis = join "\n", @{$synopsis};
+        $synopsis = $self->get_synopsis_from_metacpan($Module);
         $self->cache->set($cache_key, $synopsis, '1 day');
     }
 
@@ -81,17 +85,14 @@ sub get_synopsis_from_metacpan {
       "http://api.metacpan.org/pod/${Module}?content-type=text/x-markdown";
     my $response = $self->http_client->get($pod_url);
     if (not $response->{success}) {
-        warn "Failed to get URL: $pod_url";
-        return;
+        return $self->not_found_string;
     }
     my $content        = $response->{content}; # if length $response->{content};
-    my (@synopsis_lines, @description_lines) = ((), ());
-    my ($seen_synopsis, $seen_description)  = (0,0); 
-    my ($seen_synopsis_end, $seen_description_end) = (0,0);
+    my @synopsis_lines = ();
+    my $seen_synopsis = my $seen_synopsis_end = 0;
     my @content_lines = split '\n', $content;
 
     foreach (@content_lines) {
-
         # Are we starting the section after the Synopsis?
         if ($seen_synopsis && m/^#\s/) {
             $seen_synopsis_end = 1;
@@ -102,6 +103,26 @@ sub get_synopsis_from_metacpan {
         if ($seen_synopsis && not $seen_synopsis_end) {
             push @synopsis_lines, $_;
         }
+    }
+    return wantarray ? @synopsis_lines : join "\n", @synopsis_lines;
+}
+
+sub get_description_from_metacpan {
+    my ($self, $Module) = @_;
+    
+    my $pod_url =
+      "http://api.metacpan.org/pod/${Module}?content-type=text/x-markdown";
+    my $response = $self->http_client->get($pod_url);
+    if (not $response->{success}) {
+        #warn "Failed to get URL: $pod_url";
+        return;
+    }
+    my $content = $response->{content}; # if length $response->{content};
+    my @description_lines = ();
+    my $seen_description = my $seen_description_end = 0;
+    my @content_lines = split '\n', $content;
+
+    foreach (@content_lines) {
         
         # Are we starting the section after the Synopsis?
         if ($seen_description && m/^#\s/) {
@@ -114,10 +135,9 @@ sub get_synopsis_from_metacpan {
             push @description_lines, $_;
         }
     }
-#    return wantarray ? @synopsis_lines : join "\n", @synopsis_lines;
-    return (\@description_lines, \@synopsis_lines); 
+    return wantarray ? @description_lines : join "\n", @description_lines;
 }
-
+    
 =head2 get_synopsis_formatted
 
     signature: (a Perl Module name, an element of qw/presentation/)
@@ -133,20 +153,10 @@ sub get_synopsis_formatted {
     my $dispatch_table = {
         presentation => sub {
 
-            my ($description_lines, $synopsis_lines) = $self->get_synopsis_from_metacpan($Module);
-            my @synopsis_lines = $self->trim_lines(@{$synopsis_lines});
+            my @synopsis_lines = $self->get_synopsis_from_metacpan($Module);
+            @synopsis_lines = $self->trim_lines(@synopsis_lines);
             if (not scalar @synopsis_lines) {
-                return "<div style='font-size: 1.33em;'> SYNOPSIS Not Found for <strong>
-                <a href='http://metacpan.org/module/${Module}'>${Module}</a></strong></div>";
-            }
-            my @description_lines = $self->trim_lines(@{$description_lines});
-            my $description;
-            if (not scalar @description_lines) {
-                $description = "<div style='font-size: 1.33em;'> DESCRIPTION Not Found for <strong>
-                <a href='http://metacpan.org/module/${Module}'>${Module}</a></strong></div>";
-            }
-            else {
-                $description =  $self->markdown->markdown(join "\n", @description_lines);
+                return $self->not_found_string;
             }
             
             # Comment out lines that don't start with a comment
@@ -163,8 +173,6 @@ sub get_synopsis_formatted {
             $synopsis = "<pre class='prettyprint'>\n" . $synopsis . "</pre>\n";
 
             $synopsis = "<h2 class='Module'><a href='http://metacpan.org/module/${Module}'>${Module}</a></h2>". $synopsis;
-            $description = "<h2 class='Module'>Description</h2>\n<section style='display:none;'>$description</section>";
-            #return $synopsis . "\n" . $description;
             return $synopsis;
           }
     };
@@ -210,9 +218,7 @@ sub trim_lines {
 }
 =head2 get_recent_releases_from_metacpan
 
-    Get a Hash of the most recent CPAN releases
-    where they keys are: Module Names
-     and the values are: Module Versions
+    Get an ArrayRef[HashRef] of the most recent CPAN releases
 
 =cut
 
@@ -220,7 +226,7 @@ sub get_recent_releases_from_metacpan {
     my ($self, $how_many) = @_;
     $how_many ||= 10;
 
-    my @fields        = qw/distribution version download_url/;
+    my @fields        = qw/author name distribution version maturity download_url/;
     my $fields_string = join ',', @fields;
     my $result        = $self->metacpan->release(
         search => {
@@ -230,7 +236,7 @@ sub get_recent_releases_from_metacpan {
         },
     );
 
-    return map { $_->{fields} } @{ $result->{hits}->{hits} };
+    return [ map { $_->{fields} } @{ $result->{hits}->{hits} } ];
 }
 
 =head2 recent_synopses_shortcut
@@ -279,14 +285,8 @@ sub get_recent_releases {
     my $cache_key = "CPAN_RECENT_RELEASES:${how_many}";
     my $releases  = $self->cache->get($cache_key);
     if (not $releases) {
-        warn "GET Recent Releases from CPAN" if $ENV{MOJITO_DEBUG};
-        my @releases =
-        map {
-            my $dist = $_->{distribution}; 
-            $dist =~ s/\-/::/g;
-            $dist;
-        }  $self->get_recent_releases_from_metacpan($how_many);;
-        $releases = \@releases;
+        warn "GET Recent Releases from CPAN\n" if $ENV{MOJITO_DEBUG};
+        $releases = $self->get_recent_releases_from_metacpan($how_many);
         $self->cache->set($cache_key, $releases, '1 minute');
     }
     return $releases;
@@ -301,11 +301,37 @@ Get the most recent synopses from CPAN
 sub get_recent_synopses {
     my ($self, $how_many) = @_;
     $how_many ||= 10;
+    my $metacpan_web_host = 'https://metacpan.org';
 
     my $html;
     my $releases = $self->get_recent_releases($how_many);
+    # Avoid duplicatds
+    my %have_seen = ();
     foreach my $release (@{$releases}) {
-        $html .= "\n" . $self->get_synopsis_formatted($release, 'presentation');    
+        my $main_module = $release->{distribution}; 
+        $main_module =~ s/\-/::/g;
+        next if $have_seen{$main_module};
+        my $synopsis = $self->get_synopsis_formatted($main_module, 'presentation');
+        my $not_found_message = '';
+        if ($synopsis eq $self->not_found_string) {
+            $not_found_message = 'Synopsis not found for '; 
+            if ($release->{maturity} eq 'released') {
+                $html .= "<section class='released'>$not_found_message 
+                <a href='${metacpan_web_host}/release/$release->{author}/$release->{name}'>$release->{name}</a>
+                </section>\n";
+            }
+            else {
+                $html .= "<section class='developer'>$not_found_message
+                <a href='${metacpan_web_host}/release/$release->{author}/$release->{name}'>$release->{name}</a>
+                <span style='font-size: 88%;'> (dev)</span>
+                </section>\n";
+            }
+        }
+        else {
+            $html .= $synopsis;
+        }
+        $have_seen{$main_module}++; 
     }
     return $html;
 }
+

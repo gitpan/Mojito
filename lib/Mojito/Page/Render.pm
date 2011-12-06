@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page::Render;
 {
-  $Mojito::Page::Render::VERSION = '0.16';
+  $Mojito::Page::Render::VERSION = '0.17';
 }
 use 5.010;
 use Moo;
@@ -16,6 +16,12 @@ use Data::Dumper::Concise;
 
 with('Mojito::Filter::Shortcuts');
 with('Mojito::Role::Config');
+
+=head1 Name
+
+Mojito::Page::Render - turn a parsed page into html
+
+=cut
 
 has tmpl => (
     is => 'ro',

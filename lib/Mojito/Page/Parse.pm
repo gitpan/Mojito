@@ -1,13 +1,19 @@
 use strictures 1;
 package Mojito::Page::Parse;
 {
-  $Mojito::Page::Parse::VERSION = '0.16';
+  $Mojito::Page::Parse::VERSION = '0.17';
 }
 use 5.010;
 use Moo;
 use MooX::Types::MooseLike qw(:all);
 
 use Data::Dumper::Concise;
+
+=head1 Name
+
+Mojito::Page::Parse - turn page source into a page structure
+
+=cut
 
 # This is the page source
 has 'page' => (

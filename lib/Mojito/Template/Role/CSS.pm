@@ -1,10 +1,16 @@
 use strictures 1;
 package Mojito::Template::Role::CSS;
 {
-  $Mojito::Template::Role::CSS::VERSION = '0.16';
+  $Mojito::Template::Role::CSS::VERSION = '0.17';
 }
 use Moo::Role;
 use MooX::Types::MooseLike qw(:all);
+
+=head1 Name
+
+Mojito::Template::Role::CSS - a class for CSS resources
+
+=cut
 
 with('Mojito::Role::Config');
 

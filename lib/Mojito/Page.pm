@@ -1,10 +1,14 @@
 use strictures 1;
 package Mojito::Page;
 {
-  $Mojito::Page::VERSION = '0.16';
+  $Mojito::Page::VERSION = '0.17';
 }
 use Moo;
 use Sub::Quote qw(quote_sub);
+
+=head1 Name
+
+Mojito::Page - the page delegator class
 
 =head1 Description
 

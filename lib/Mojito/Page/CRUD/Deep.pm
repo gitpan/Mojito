@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page::CRUD::Deep;
 {
-  $Mojito::Page::CRUD::Deep::VERSION = '0.16';
+  $Mojito::Page::CRUD::Deep::VERSION = '0.17';
 }
 use 5.010;
 use Moo;
@@ -10,6 +10,10 @@ use Data::Dumper::Concise;
 with('Mojito::Role::DB::Deep');
 
 has base_url => ( is => 'rw', );
+
+=head1 Name
+
+Mojito::Page::CRUD::Deep - DBM::Deep CRUD
 
 =head1 Methods
 

@@ -1,12 +1,17 @@
 use strictures 1;
 package Mojito::Auth;
 {
-  $Mojito::Auth::VERSION = '0.16';
+  $Mojito::Auth::VERSION = '0.17';
 }
 use Mojito::Auth::Mongo;
 use Mojito::Auth::Deep;
 use Moo;
-use Data::Dumper::Concise;
+
+=head1 Name
+
+Mojito::Auth - authentication delegator class
+
+=cut
 
 has 'auth' => (
     is => 'ro',

@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Auth::Role;
 {
-  $Mojito::Auth::Role::VERSION = '0.16';
+  $Mojito::Auth::Role::VERSION = '0.17';
 }
 use Moo::Role;
 use Digest::MD5;
@@ -10,6 +10,17 @@ use utf8;
 use Data::Dumper::Concise;
 
 requires 'get_user', 'add_user', 'remove_user';
+
+=head1 Name
+
+Mojito::Auth::Deep - common auth parts
+
+=head1 Methods
+
+=head2 add_user
+
+Provide the username, realm (default Mojito) and password.
+
 
 =head1 Attributes
 

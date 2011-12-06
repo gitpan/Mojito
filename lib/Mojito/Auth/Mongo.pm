@@ -1,12 +1,16 @@
 use strictures 1;
 package Mojito::Auth::Mongo;
 {
-  $Mojito::Auth::Mongo::VERSION = '0.16';
+  $Mojito::Auth::Mongo::VERSION = '0.17';
 }
 use Moo;
 use Data::Dumper::Concise;
 
 with('Mojito::Role::DB::Mongo');
+
+=head1 Name
+
+Mojito::Auth::Deep - authentication delegatee class for MongoDB
 
 =head1 Methods
 

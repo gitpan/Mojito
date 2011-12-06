@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Model::Transform;
 {
-  $Mojito::Model::Transform::VERSION = '0.16';
+  $Mojito::Model::Transform::VERSION = '0.17';
 }
 use Moo;
 use MooX::Types::MooseLike qw/Object ArrayRef/;

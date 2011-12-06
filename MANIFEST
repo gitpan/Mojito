@@ -110,7 +110,6 @@ lib/Mojito/Collection/Present.pm
 lib/Mojito/Filter/MojoMojo/Converter.pm
 lib/Mojito/Filter/Shortcuts.pm
 lib/Mojito/Middleware.pm
-lib/Mojito/Middleware/TestDB.pm
 lib/Mojito/Model/Config.pm
 lib/Mojito/Model/DB.pm
 lib/Mojito/Model/Doc.pm

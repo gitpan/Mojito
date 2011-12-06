@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page::CRUD::Mongo;
 {
-  $Mojito::Page::CRUD::Mongo::VERSION = '0.16';
+  $Mojito::Page::CRUD::Mongo::VERSION = '0.17';
 }
 use MongoDB::OID;
 use 5.010;
@@ -11,6 +11,10 @@ use Data::Dumper::Concise;
 with('Mojito::Role::DB::Mongo');
 
 has base_url => ( is => 'rw', );
+
+=head1 Name
+
+Mojito::Page::CRUD::Mongo - MongoDB CRUD
 
 =head1 Methods
 

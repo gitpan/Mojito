@@ -2,7 +2,7 @@ use strictures 1;
 
 package Mojito::Page::Git;
 {
-  $Mojito::Page::Git::VERSION = '0.16';
+  $Mojito::Page::Git::VERSION = '0.17';
 }
 use 5.010;
 use Moo;
@@ -15,6 +15,12 @@ use Data::Dumper::Concise;
 
 with('Mojito::Role::DB');
 with('Mojito::Role::Config');
+
+=head1 Name
+
+Mojito::Page::Git - the git backend
+
+=cut
 
 has dir => (
     is        => 'rw',

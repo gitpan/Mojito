@@ -1,14 +1,18 @@
-use strictures 1;
-
 package RecentSynopses;
+use strictures 1;
 use Web::Simple;
 use Mojito::Model::MetaCPAN;
 use Mojito::Template;
-use Mojito::Model::Config;
 use Mojito::Filter::MojoMojo::Converter;
-use Time::HiRes qw/ time /;
 
 with('Mojito::Role::Config');
+
+=head1 Name
+
+RecentSynopses - a mini-app that show recent CPAN synopses
+
+=cut
+
 has converter => (
     is   => 'ro',
     lazy => 1,
@@ -26,7 +30,7 @@ has tmpl => (
     is   => 'ro',
     lazy => 1,
     default =>
-      sub { my $self = shift; Mojito::Template->new(config => $self->config) },
+      sub { Mojito::Template->new(config => $_[0]->config) },
 );
 
 sub dispatch_request {
@@ -43,7 +47,7 @@ sub dispatch_request {
         $self->converter->content($body);
         $self->converter->toc;
         my $html =
-          $self->tmpl->wrap_page($self->converter->content, 'Recent Synapses');
+          $self->tmpl->wrap_page($self->converter->content, 'Recent CPAN Synapses');
         [ 200, [ 'Content-type', 'text/html' ], [$html] ];
       },
 
@@ -58,7 +62,7 @@ sub BUILD {
         # code executed only by the child ...
         while (1) {
             $self->metacpan->get_recent_synopses;
-            sleep 29;
+            sleep 60;
         }
     }
     else {
