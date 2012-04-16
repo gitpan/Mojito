@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Auth;
 {
-  $Mojito::Auth::VERSION = '0.17';
+  $Mojito::Auth::VERSION = '0.18';
 }
 use Mojito::Auth::Mongo;
 use Mojito::Auth::Deep;

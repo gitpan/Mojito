@@ -1,10 +1,10 @@
 use strictures 1;
 package Mojito::Role::Config;
 {
-  $Mojito::Role::Config::VERSION = '0.17';
+  $Mojito::Role::Config::VERSION = '0.18';
 }
 use Moo::Role;
-use MooX::Types::MooseLike 0.02 qw(HashRef);
+use MooX::Types::MooseLike::Base qw(HashRef);
 use Cwd qw/ abs_path /;
 use Dir::Self;
 
@@ -37,6 +37,7 @@ sub _build_config {
     my $conf_file       = abs_path(__DIR__ . '/../conf/mojito.conf');
     my $local_conf_file = abs_path(__DIR__ . '/../conf/mojito_local.conf');
     my $env_conf_file   = $ENV{MOJITO_CONFIG};
+    warn "ENV CONFIG: $ENV{MOJITO_CONFIG}" if $ENV{MOJITO_DEBUG};
 
     my $conf       = $self->read_config($conf_file);
     my $local_conf = $self->read_config($local_conf_file);

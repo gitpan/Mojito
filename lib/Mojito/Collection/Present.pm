@@ -1,10 +1,10 @@
 use strictures 1;
 package Mojito::Collection::Present;
 {
-  $Mojito::Collection::Present::VERSION = '0.17';
+  $Mojito::Collection::Present::VERSION = '0.18';
 }
 use Moo;
-use MooX::Types::MooseLike qw(:all);
+use MooX::Types::MooseLike::Base qw(:all);
 use Mojito::Collection::CRUD;
 use List::MoreUtils qw/ first_index /;
 

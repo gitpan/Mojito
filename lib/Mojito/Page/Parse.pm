@@ -1,11 +1,11 @@
 use strictures 1;
 package Mojito::Page::Parse;
 {
-  $Mojito::Page::Parse::VERSION = '0.17';
+  $Mojito::Page::Parse::VERSION = '0.18';
 }
 use 5.010;
 use Moo;
-use MooX::Types::MooseLike qw(:all);
+use MooX::Types::MooseLike::Base qw(:all);
 
 use Data::Dumper::Concise;
 

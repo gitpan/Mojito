@@ -1,10 +1,10 @@
 use strictures 1;
 package Mojito::Model::Transform;
 {
-  $Mojito::Model::Transform::VERSION = '0.17';
+  $Mojito::Model::Transform::VERSION = '0.18';
 }
 use Moo;
-use MooX::Types::MooseLike qw/Object ArrayRef/;
+use MooX::Types::MooseLike::Base qw/Object ArrayRef/;
 use Mojito::Page::CRUD::Mongo;
 use Mojito::Model::Config;
 use DBM::Deep;

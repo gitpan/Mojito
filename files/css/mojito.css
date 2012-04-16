@@ -58,6 +58,10 @@ h1 {
     background-color: white;
 }
 
+#toggle_view {
+	font-size: 66.7%;
+}
+
 #recent_area {
     float: right;
     border-left: 1px dotted #888;
@@ -267,4 +271,16 @@ section.released {
 
 section.developer {
     margin: 0.5em;
+}
+
+.module_abstract {
+    font-style: italic;
+    font-size: 108%;
+    font-family: sans-serif;
+    padding: 0px;
+}
+
+.Module {
+    padding: 0px;
+    margin-bottom: 0em;
 }

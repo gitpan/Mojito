@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito;
 {
-  $Mojito::VERSION = '0.17';
+  $Mojito::VERSION = '0.18';
 }
 use Moo;
 use Path::Class;
@@ -11,21 +11,21 @@ use Data::Dumper::Concise;
 
 extends 'Mojito::Page';
 
-=head1 Name
+=head1 NAME
 
 Mojito - A Web Document System
 
-=head1 Synopsis
+=head1 SYNOPSIS
 
   use Mojito::Model::Config;
   my $mojito = Mojito->new(config => Mojito::Model::Config->new->config);
   my $page_id = '123456781234567812345678';
-  my $rendered_page = $mojito->view_page({id => $page_id};
+  my $rendered_page = $mojito->view_page({id => $page_id});
 
   # You might want to checkout one of the applications in app/
   # For example: 'plackup -Ilib app/mojito.pl' starts up a Web::Simple instance of Mojito
 
-=head1 Description
+=head1 DESCRIPTION
 
 Mojito is a web document system that enables individuals to easily author 
 HTML5 compliant documents.  It provides a source editor for various

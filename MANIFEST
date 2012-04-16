@@ -89,13 +89,13 @@ files/css/ui-lightness/images/ui-icons_228ef1_256x240.png
 files/css/ui-lightness/images/ui-icons_ef8c08_256x240.png
 files/css/ui-lightness/images/ui-icons_ffd27a_256x240.png
 files/css/ui-lightness/images/ui-icons_ffffff_256x240.png
-files/css/ui-lightness/jquery-ui-1.8.11.custom.css
+files/css/ui-lightness/jquery-ui.custom.css
 files/javascript/publish.js
 files/javascript/render_page.js
 files/javascript/style.js
-files/jquery/autoresize_min.js
-files/jquery/jquery-ui-1.8.11.custom.min.js
-files/jquery/jquery_min.js
+files/jquery/jquery-ui.custom.min.js
+files/jquery/jquery.cookie.js
+files/jquery/jquery.min.js
 files/syntax_highlight/prettify.js
 files/syntax_highlight/prettify_mojito.css
 lib/Mojito.pm

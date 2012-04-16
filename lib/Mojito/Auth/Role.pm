@@ -1,11 +1,11 @@
 use strictures 1;
 package Mojito::Auth::Role;
 {
-  $Mojito::Auth::Role::VERSION = '0.17';
+  $Mojito::Auth::Role::VERSION = '0.18';
 }
 use Moo::Role;
 use Digest::MD5;
-use MooX::Types::MooseLike qw(:all);
+use MooX::Types::MooseLike::Base qw(:all);
 use utf8;
 use Data::Dumper::Concise;
 

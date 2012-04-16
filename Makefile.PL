@@ -10,7 +10,7 @@ use ExtUtils::MakeMaker 6.30;
 
 my %WriteMakefileArgs = (
   "ABSTRACT" => "Web Document System",
-  "AUTHOR" => "Mateu X Hunter <hunter\@missoula.org>",
+  "AUTHOR" => "Mateu X. Hunter",
   "BUILD_REQUIRES" => {
     "Data::Schema" => 0,
     "English" => 0,
@@ -60,7 +60,7 @@ my %WriteMakefileArgs = (
     "MongoDB::OID" => 0,
     "Moo" => 0,
     "Moo::Role" => 0,
-    "MooX::Types::MooseLike" => "0.02",
+    "MooX::Types::MooseLike::Base" => 0,
     "Path::Class" => 0,
     "Plack::Middleware" => 0,
     "Plack::Util::Accessor" => 0,
@@ -75,7 +75,7 @@ my %WriteMakefileArgs = (
     "strictures" => 1,
     "utf8" => 0
   },
-  "VERSION" => "0.17",
+  "VERSION" => "0.18",
   "test" => {
     "TESTS" => "t/*.t"
   }

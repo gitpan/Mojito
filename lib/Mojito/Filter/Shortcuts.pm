@@ -1,10 +1,10 @@
 use strictures 1;
 package Mojito::Filter::Shortcuts;
 {
-  $Mojito::Filter::Shortcuts::VERSION = '0.17';
+  $Mojito::Filter::Shortcuts::VERSION = '0.18';
 }
 use Moo::Role;
-use MooX::Types::MooseLike qw(:all);
+use MooX::Types::MooseLike::Base qw(:all);
 use Mojito::Model::MetaCPAN;
 use 5.010;
 use Data::Dumper::Concise;
