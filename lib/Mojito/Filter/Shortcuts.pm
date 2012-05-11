@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Filter::Shortcuts;
 {
-  $Mojito::Filter::Shortcuts::VERSION = '0.18';
+  $Mojito::Filter::Shortcuts::VERSION = '0.19';
 }
 use Moo::Role;
 use MooX::Types::MooseLike::Base qw(:all);
@@ -93,7 +93,7 @@ Expand the cpan abbreviated shortcut.
 sub metacpan_module_URL {
     my ($self, $content) = @_;
     return if !$content;
-    $content =~ s|{{modmeta\s+([^}]*)}}|<a href="http://metacpan.org/module/$1">$1</a>|sig;
+    $content =~ s|{{metacpan\s+([^}]*)}}|<a href="http://metacpan.org/module/$1">$1</a>|sig;
     return $content;
 }
 =head2 metacpan_module_URL
@@ -105,7 +105,7 @@ Expand the cpan abbreviated shortcut.
 sub metacpan_author_URL {
     my ($self, $content) = @_;
     return if !$content;
-    $content =~ s|{{authmeta\s+([^}]*)}}|<a href="http://metacpan.org/author/$1">$1</a>|sig;
+    $content =~ s|{{metacpan.author\s+([^}]*)}}|<a href="http://metacpan.org/author/$1">$1</a>|sig;
     return $content;
 }
 

@@ -48,6 +48,7 @@ files/SHJS/sh_javascript.js
 files/SHJS/sh_javascript.min.js
 files/SHJS/sh_kwrite.css
 files/SHJS/sh_kwrite.min.css
+files/SHJS/sh_langs.min.js
 files/SHJS/sh_latex.js
 files/SHJS/sh_latex.min.js
 files/SHJS/sh_main.js

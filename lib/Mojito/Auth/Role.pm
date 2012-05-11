@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Auth::Role;
 {
-  $Mojito::Auth::Role::VERSION = '0.18';
+  $Mojito::Auth::Role::VERSION = '0.19';
 }
 use Moo::Role;
 use Digest::MD5;

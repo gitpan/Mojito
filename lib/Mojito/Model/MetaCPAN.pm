@@ -2,7 +2,7 @@ use strictures 1;
 
 package Mojito::Model::MetaCPAN;
 {
-  $Mojito::Model::MetaCPAN::VERSION = '0.18';
+  $Mojito::Model::MetaCPAN::VERSION = '0.19';
 }
 use Moo;
 use HTTP::Tiny;
@@ -337,3 +337,4 @@ sub get_recent_synopses {
     return $html;
 }
 
+1

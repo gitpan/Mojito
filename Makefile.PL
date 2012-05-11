@@ -39,7 +39,6 @@ my %WriteMakefileArgs = (
   "NAME" => "Mojito",
   "PREREQ_PM" => {
     "CHI" => 0,
-    "Cwd" => 0,
     "DBM::Deep" => 0,
     "Data::Dumper::Concise" => 0,
     "DateTime" => 0,
@@ -75,7 +74,7 @@ my %WriteMakefileArgs = (
     "strictures" => 1,
     "utf8" => 0
   },
-  "VERSION" => "0.18",
+  "VERSION" => "0.19",
   "test" => {
     "TESTS" => "t/*.t"
   }

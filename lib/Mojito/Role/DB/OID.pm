@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Role::DB::OID;
 {
-  $Mojito::Role::DB::OID::VERSION = '0.18';
+  $Mojito::Role::DB::OID::VERSION = '0.19';
 } 
 use Moo::Role;
 

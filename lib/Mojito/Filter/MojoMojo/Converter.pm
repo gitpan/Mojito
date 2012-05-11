@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Filter::MojoMojo::Converter;
 {
-  $Mojito::Filter::MojoMojo::Converter::VERSION = '0.18';
+  $Mojito::Filter::MojoMojo::Converter::VERSION = '0.19';
 }
 use Moo;
 use HTML::Toc;
