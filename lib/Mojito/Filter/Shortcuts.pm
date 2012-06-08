@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Filter::Shortcuts;
 {
-  $Mojito::Filter::Shortcuts::VERSION = '0.19';
+  $Mojito::Filter::Shortcuts::VERSION = '0.20';
 }
 use Moo::Role;
 use MooX::Types::MooseLike::Base qw(:all);

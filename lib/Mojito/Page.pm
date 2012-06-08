@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page;
 {
-  $Mojito::Page::VERSION = '0.19';
+  $Mojito::Page::VERSION = '0.20';
 }
 use Moo;
 use Sub::Quote qw(quote_sub);
@@ -117,6 +117,7 @@ has linker => (
             get_feed_links
             view_collections_index
             view_collection_nav
+            get_atom_feed
           )
     ],
     writer => '_build_link',

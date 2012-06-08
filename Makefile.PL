@@ -42,6 +42,7 @@ my %WriteMakefileArgs = (
     "DBM::Deep" => 0,
     "Data::Dumper::Concise" => 0,
     "DateTime" => 0,
+    "DateTime::TimeZone" => 0,
     "Digest::MD5" => 0,
     "Dir::Self" => 0,
     "File::Spec" => 0,
@@ -65,16 +66,18 @@ my %WriteMakefileArgs = (
     "Plack::Util::Accessor" => 0,
     "Pod::Simple::XHTML" => 0,
     "Sub::Quote" => 0,
+    "Syntax::Keyword::Junction" => 0,
     "Text::MultiMarkdown" => 0,
     "Text::Textile" => 0,
     "Text::WikiCreole" => 0,
     "Try::Tiny" => 0,
     "WWW::Mechanize" => 0,
+    "XML::Atom::SimpleFeed" => 0,
     "parent" => 0,
     "strictures" => 1,
     "utf8" => 0
   },
-  "VERSION" => "0.19",
+  "VERSION" => "0.20",
   "test" => {
     "TESTS" => "t/*.t"
   }

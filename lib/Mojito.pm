@@ -1,12 +1,12 @@
 use strictures 1;
 package Mojito;
 {
-  $Mojito::VERSION = '0.19';
+  $Mojito::VERSION = '0.20';
 }
 use Moo;
 use Path::Class;
 use File::Spec;
-
+use 5.010;
 use Data::Dumper::Concise;
 
 extends 'Mojito::Page';
@@ -141,9 +141,48 @@ sub update_page {
 
     # Add a feed if there is such a param
     if (my $feeds = $params->{feeds}) {
-        # Allow : to separate multiple feeds. e.g. ?feed=ironman:chatterbox
+        # Allow : to separate multiple feeds. e.g. ?feeds=ironman:chatterbox
         my @feeds = split ':', $feeds;
         $page->{feeds} = [@feeds];
+        # A document that is part of a feed is considered public by default
+        $page->{public} = 1;
+    }
+    my $collection_ids = $params->{collection_select};
+    # Want to coerce (single select) SCALAR into an ArrayRef (happens w/ Dancer params)
+    if (ref($collection_ids) ne 'ARRAY') {
+        warn "Coercing collection select params into an ArrefRef" if $ENV{MOJITO_DEBUG};
+        $collection_ids = [$collection_ids];
+    }
+    # Have we assigned the page to at least one collection?
+    if (defined $collection_ids->[0]) {
+        my $cursor = $self->db->collection->find({collected_page_ids => $params->{mongo_id}});
+        my %HAVE;
+        while (my $collection = $cursor->next) {
+            $HAVE{$collection->{_id}} = 1;
+        }
+        my %WANT = map { $_ => 1 } @{$collection_ids};
+        # collection_id of zero in this case means we don't want to assign
+        # the page to any collection
+        %WANT = () if not $collection_ids->[0];
+        foreach my $collection_id (keys %WANT) {
+            if (not $HAVE{$collection_id}) {
+            # add page_id to the collection
+                my $collection = $self->collector->read($collection_id);
+                push @{$collection->{collected_page_ids}}, $params->{mongo_id};
+                my $oid = MongoDB::OID->new( value => $collection_id );
+                $self->db->collection->update({_id => $oid}, $collection);
+            }
+        }
+        foreach my $collection_id (keys %HAVE) {
+            if (not $WANT{$collection_id}) {
+            # remove the page_id from the collection
+                my $oid = MongoDB::OID->new( value => $collection_id );
+                $self->db->collection->update(
+                    { _id => $oid },
+                    { '$pull' => {collected_page_ids => $params->{mongo_id} } },
+                );
+            }
+        }
     }
 
     # Save page to db
@@ -207,6 +246,7 @@ like the view_page() method is setup for public pages
 sub view_page_public {
     my ( $self, $params ) = @_;
     my $page          = $self->read( $params->{id} );
+    return "Page is not public" if not $page->{public};
 # TODO: Use body_html unless otherwise specified
 #    return $self->wrap_page($page->{body_html}, $page->{title});
     return $self->wrap_page($self->render_body($page), $page->{title});
@@ -233,12 +273,15 @@ sub view_page_collected {
 
     # Strip out Edit and New links (even though they are Auth::Digest Protected)
     # Remove edit, new links and the recent area
-    $rendered_page =~ s/<nav id="edit_link".*?><\/nav>//sig;
+    if(not $self->config->{username}) {
+        $rendered_page =~ s/<nav id="edit_link".*?><\/nav>//sig;
+    }
     $rendered_page =~ s/<nav id="new_link".*?>.*?<\/nav>//sig;
     $rendered_page =~ s/<section id="recent_area".*?><\/section>//si;
     $rendered_page =~ s/<section id="publish_area">.*?<\/section>//si;
     $rendered_page =~ s/<section id="collections_area"><\/section>//si;
     $rendered_page =~ s/<section id="search_area">.*?<\/section>//si;
+    $rendered_page =~ s/<section id="calendar_area">.*?<\/section>//si;
     # Fill-in collection navigation area
     my $collection_nav = $self->view_collection_nav( $params );
     $rendered_page =~ s/(<section\s+id="collection_nav_area".*?>)<\/section>/$1${collection_nav}<\/section>/si;
@@ -498,6 +541,21 @@ sub publish_page {
      # return redirect location
      my $redirect_url =  $self->publisher->target_base_url .  $self->publisher->target_page;
      my $response_href = { redirect_url => $redirect_url, result => $result };
+}
+
+=head2 feed_page
+
+Get a feed in a particular format
+
+=cut
+
+sub feed_page {
+    my ( $self, $params ) = @_;
+    my ($feed, $format) = @{$params}{qw/feed_name feed_format/};
+    if ($format eq 'atom') {
+        return $self->get_atom_feed($feed);
+    }
+    return;
 }
 
 =head2 bench

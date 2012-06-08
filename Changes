@@ -1,3 +1,12 @@
+0.20      2012-06-08 16:38:15 America/Denver
+          [Enchantments]
+          - Atom feed support
+          - Option to mark a page as part of a feed
+          - Option to mark a page as publicly viewable (no auth needed)
+
+          [Refinements]
+          - Option to mark a page as part of a collection
+
 0.19      2012-05-11 11:01:08 America/Denver
           [Refinement]
           - Edit area scrolls with you on long pages

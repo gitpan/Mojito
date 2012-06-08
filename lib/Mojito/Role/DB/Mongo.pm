@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Role::DB::Mongo;
 {
-  $Mojito::Role::DB::Mongo::VERSION = '0.19';
+  $Mojito::Role::DB::Mongo::VERSION = '0.20';
 }
 use Moo::Role;
 use MongoDB;
@@ -53,11 +53,16 @@ sub _build_db  {
 #    warn $trace->as_string;
     my $self = shift;
     my $db_name = $self->db_name;
-    $self->conn->${db_name};
+    return $self->conn->${db_name};
 }
 sub _build_collection  {
     my $self = shift;
     my $collection_name = $self->collection_name;
+    # Ran into trouble with $self->db not being defined when it seemed 
+    # that it should be.  Clearing the db attribute resolved it.
+    if (not defined $self->db) {
+        $self->clear_db;
+    }
     $self->db->${collection_name};
 }
 

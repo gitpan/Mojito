@@ -1,12 +1,13 @@
 use strictures 1;
 package Mojito::Collection::CRUD::Deep;
 {
-  $Mojito::Collection::CRUD::Deep::VERSION = '0.19';
+  $Mojito::Collection::CRUD::Deep::VERSION = '0.20';
 }
 use MongoDB::OID;
 use 5.010;
 use Moo;
 use List::Util qw/first/;
+use Syntax::Keyword::Junction qw/ any /;
 use Data::Dumper::Concise;
 
 with('Mojito::Role::DB::Deep');
@@ -110,6 +111,26 @@ Returns a MongoDB cursor one can iterate over.
 sub get_all {
     my $self = shift;
     return $self->collection->export;
+}
+
+=head2 collection_for_page
+
+Get all the collection ids for which this page is a member of.
+
+=cut
+
+sub collections_for_page {
+    my ( $self, $page_id ) = @_;
+
+    $page_id //= '';
+    my @collection_ids = ();
+    foreach my $collection (@{$self->get_all}) {
+        if ($page_id eq any(@{$collection->{collected_page_ids}})) {
+            push @collection_ids, $collection->{id};
+        }
+    }
+
+    return @collection_ids;
 }
 
 =head2 BUILD

@@ -55,6 +55,15 @@ $(document).ready(function() {
 		  });
 		  $('.view_area_view_mode').width('90%');
 	});
+    $('#feeds_label').css( 'cursor', 'pointer' );
+    $('#feeds_label').click(function() {
+        $('#feeds').toggle(100, function() { });
+    });
+    $('#collection_label').css( 'cursor', 'pointer' );
+    $('#collection_label').click(function() {
+        $('#collection_select').toggle(100, function() { });
+    });
+
 });
 
 function got_content() {

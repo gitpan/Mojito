@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page::CRUD::Mongo;
 {
-  $Mojito::Page::CRUD::Mongo::VERSION = '0.19';
+  $Mojito::Page::CRUD::Mongo::VERSION = '0.20';
 }
 use MongoDB::OID;
 use 5.010;

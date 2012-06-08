@@ -1,11 +1,13 @@
 use strictures 1;
 package Mojito::Model::Link;
 {
-  $Mojito::Model::Link::VERSION = '0.19';
+  $Mojito::Model::Link::VERSION = '0.20';
 }
 use Moo;
 use Mojito::Model::Doc;
 use Mojito::Collection::Present;
+use DateTime;
+use XML::Atom::SimpleFeed;
 use Data::Dumper::Concise;
 
 with('Mojito::Role::Config');
@@ -60,6 +62,35 @@ sub get_feed_link_data {
     my ($self, $feed) = @_;
     my $cursor = $self->get_feed_docs($feed);
     return $self->get_link_data($cursor);
+}
+
+=head2 get_atom_feed
+
+Get the data to create links for a particular feed.
+
+=cut
+
+sub get_atom_feed {
+    my ($self, $feed) = @_;
+    my $cursor = $self->get_feed_docs($feed);
+    my @feed_title = split /_/, $feed;
+    my $feed_title = join ' ', map { ucfirst($_) } @feed_title;
+    my $atom = XML::Atom::SimpleFeed->new(title => $feed_title, id => $feed);
+    while (my $doc = $cursor->next) {
+        my $link = $self->base_url . 'public/page/' . $doc->{'_id'}->value;
+        my $author = $doc->{author} || $self->config->{default_author} || 'Anonymous';
+        my $dt = DateTime->from_epoch( epoch => $doc->{last_modified} );
+        $dt->set_time_zone($self->config->{local_timezone});
+        my $updated = $dt->mdy('/') . ' ' . $dt->hms;
+        $atom->add_entry(
+            title => $doc->{title},
+            'link', => $link,
+            author => $author,
+            id => $doc->{'_id'}->value,
+            updated => $updated,
+        );
+    }
+    return $atom->as_string;
 }
 
 =head2 get_collections_index_link_data
@@ -147,7 +178,9 @@ sub get_feed_links {
     my ($self, $feed) = @_;
 
     my $link_data = $self->get_feed_link_data($feed);
-    my $title = ucfirst($feed) . ' Articles';
+    my @feed_title = split /_/, $feed;
+    my $feed_title = join ' ', map { ucfirst($_) } @feed_title;
+    my $title = $feed_title . ' Feed';
     my $link_title = "<span class='feeds' style='font-weight: bold;'>$title</span><br />";
     my $links = $self->create_list_of_links($link_data, {want_public_link => 1});
     if ($links) {
