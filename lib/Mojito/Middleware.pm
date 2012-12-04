@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Middleware;
 {
-  $Mojito::Middleware::VERSION = '0.20';
+  $Mojito::Middleware::VERSION = '0.21';
 }
 use parent qw(Plack::Middleware);
 use Plack::Util::Accessor qw/config/;

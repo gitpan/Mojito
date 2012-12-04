@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page;
 {
-  $Mojito::Page::VERSION = '0.20';
+  $Mojito::Page::VERSION = '0.21';
 }
 use Moo;
 use Sub::Quote qw(quote_sub);
@@ -49,6 +49,7 @@ has parser => (
           )
     ],
     writer => '_build_parse',
+    default => sub { Mojito::Page::Parse->new }
 );
 
 has render => (

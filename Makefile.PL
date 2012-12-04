@@ -10,10 +10,9 @@ use ExtUtils::MakeMaker 6.30;
 
 my %WriteMakefileArgs = (
   "ABSTRACT" => "Web Document System",
-  "AUTHOR" => "Mateu X. Hunter",
+  "AUTHOR" => "Mateu X Hunter <hunter\@missoula.org>",
   "BUILD_REQUIRES" => {
     "Data::Schema" => 0,
-    "English" => 0,
     "File::Find" => 0,
     "File::Temp" => 0,
     "FindBin" => 0,
@@ -45,8 +44,10 @@ my %WriteMakefileArgs = (
     "DateTime::TimeZone" => 0,
     "Digest::MD5" => 0,
     "Dir::Self" => 0,
+    "Encode" => 0,
     "File::Spec" => 0,
     "Git::Wrapper" => 0,
+    "HTML::Entities" => 0,
     "HTML::Strip" => 0,
     "HTML::Toc" => 0,
     "HTML::TocInsertor" => 0,
@@ -77,7 +78,7 @@ my %WriteMakefileArgs = (
     "strictures" => 1,
     "utf8" => 0
   },
-  "VERSION" => "0.20",
+  "VERSION" => "0.21",
   "test" => {
     "TESTS" => "t/*.t"
   }

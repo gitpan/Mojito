@@ -2,7 +2,7 @@ use strictures 1;
 
 package Mojito::Model::MetaCPAN;
 {
-  $Mojito::Model::MetaCPAN::VERSION = '0.20';
+  $Mojito::Model::MetaCPAN::VERSION = '0.21';
 }
 use Moo;
 use HTTP::Tiny;
@@ -67,7 +67,8 @@ sub get_synopsis_from_metacpan {
 
     my $pod_url_used = 'release';
     # Use markdown format (easy to parse out SYNOPSIS)
-    my $format = '?content-type=text/x-markdown';
+#    my $format = '?content-type=text/x-markdown';
+    my $format = '?content-type=text/plain';
     my $secondary_pod_url = "http://api.metacpan.org/pod/${main_module}${format}";
     if (not $pod_url) {
         $pod_url = $secondary_pod_url;
@@ -92,14 +93,18 @@ sub get_synopsis_from_metacpan {
 
     foreach (@content_lines) {
         # Are we starting the section after the Synopsis?
-        if ($seen_synopsis && m/^#\s/) {
+#        if ($seen_synopsis && m/^#\s/) {
+        if ($seen_synopsis && m/^\S/) {
             $seen_synopsis_end = 1;
         }
-        if (m/^#\s+SYNOPSIS/i) {
+#        if (m/^#\s+SYNOPSIS/i) {
+        if (m/^SYNOPSIS/i) {
             $seen_synopsis = 1;
         }
         if ($seen_synopsis && not $seen_synopsis_end) {
-            push @synopsis_lines, $_;
+            use Encode qw/ decode_utf8 encode_utf8/;
+            push @synopsis_lines, decode_utf8($_);
+#            push @synopsis_lines, $_;
         }
     }
     return wantarray ? @synopsis_lines : join "\n", @synopsis_lines;
@@ -172,7 +177,7 @@ sub get_synopsis_formatted {
             my $synopsis = join "\n", @synopsis_lines;
 
             # pre wrapper for syntax highlight
-            $synopsis = "${abstract}<pre class='prettyprint'>\n" . $synopsis . "</pre>\n";
+            $synopsis = "${abstract}<pre class='sh_perl'>\n" . $synopsis . "</pre>\n";
             $synopsis = "<h2 class='Module'><a href='https://metacpan.org/release/$release->{author}/$release->{name}'>$release->{distribution}</a></h2>" . $synopsis;
             
             return $synopsis;

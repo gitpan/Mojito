@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Template;
 {
-  $Mojito::Template::VERSION = '0.20';
+  $Mojito::Template::VERSION = '0.21';
 }
 use Moo;
 use 5.010;
@@ -11,6 +11,7 @@ use Mojito::Collection::CRUD;
 use Mojito::Page::Publish;
 use DateTime;
 use Syntax::Keyword::Junction qw/ any /;
+use HTML::Entities;
 use Data::Dumper::Concise;
 
 with('Mojito::Template::Role::Javascript');
@@ -186,7 +187,7 @@ $collection_options
 <section id="recent_area"></section>
 </nav>
 </article>
-<footer>
+<footer id="footer_area">
 <nav id="edit_link" class="edit_link"></nav>
 <nav id="new_link" class="new_link"> <a href=${base_url}page>New</a></nav>
 </footer>
@@ -365,7 +366,7 @@ $js_css
 <section id="recent_area"></section>
 </nav>
 </article>
-<footer>
+<footer id="footer_area">
 <nav id="new_link" class="new_link"> <a href=${base_url}page>New</a></nav>
 </footer>
 </body>
@@ -386,7 +387,8 @@ Get the contents of the edit page proper given the starting template and some da
 sub fillin_edit_page {
     my ( $self, $page, $page_view, $mongo_id ) = @_;
 
-    my $page_source   = $page->{page_source}; 
+    # Encode source content with HTML entities since it will be displayed in a textarea
+    my $page_source   = encode_entities($page->{page_source}); 
     my $wiki_language = $page->{default_format}; 
     my $page_title    = $page->{title}||'no title';
     my @feeds = ();

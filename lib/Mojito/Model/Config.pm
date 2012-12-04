@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Model::Config;
 {
-  $Mojito::Model::Config::VERSION = '0.20';
+  $Mojito::Model::Config::VERSION = '0.21';
 }
 use Moo;
 

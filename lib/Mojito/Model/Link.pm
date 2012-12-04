@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Model::Link;
 {
-  $Mojito::Model::Link::VERSION = '0.20';
+  $Mojito::Model::Link::VERSION = '0.21';
 }
 use Moo;
 use Mojito::Model::Doc;
@@ -384,6 +384,7 @@ sub create_generic_list_of_links {
     my @links;
     my $item_number = 1;
     foreach my $datum (@{$link_data}) {
+        next if not $datum->{id};
         my $moniker = ($args->{list_style} && $args->{list_style} eq 'ordered') ? "$item_number. " : '&middot; ';
         push @links, $moniker . "<a href=\"${base_href}" . $datum->{id} . '">' . $datum->{title} . "</a>";
         $item_number++;

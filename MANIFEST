@@ -5,12 +5,12 @@ MANIFEST
 META.yml
 Makefile.PL
 README
+app.psgi
 app/dancer.pl
 app/example/basic.psgi
 app/example/basic_auth.psgi
 app/example/minimal.psgi
 app/example/utf8.psgi
-app/mojito.pl
 app/mojo.pl
 app/tatsumaki.psgi
 bench/edit_page.t
