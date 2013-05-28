@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Collection::Present;
 {
-  $Mojito::Collection::Present::VERSION = '0.21';
+  $Mojito::Collection::Present::VERSION = '0.22';
 }
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);

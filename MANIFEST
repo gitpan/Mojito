@@ -153,7 +153,6 @@ t/build_page_structure.t
 t/build_sections.t
 t/cpan.t
 t/data/Fixture.pm
-t/data_schema.t
 t/diff.t
 t/mojomojo_converter.pl
 t/page.t

@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Model::Link;
 {
-  $Mojito::Model::Link::VERSION = '0.21';
+  $Mojito::Model::Link::VERSION = '0.22';
 }
 use Moo;
 use Mojito::Model::Doc;
@@ -332,6 +332,7 @@ sub view_collection_page {
 EOH
 
     $args->{route} = '/collection/' . $args->{collection_id} . '/page/';
+    $args->{route} = '/public' . $args->{route} if $args->{is_public};
     $args->{list_style} = 'ordered';
     my $list = $self->create_generic_list_of_links($link_data, $args) || "No Collections yet.  Get to <a href='${base_url}/collect'>creating them!</a>";
 

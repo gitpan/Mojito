@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Template;
 {
-  $Mojito::Template::VERSION = '0.21';
+  $Mojito::Template::VERSION = '0.22';
 }
 use Moo;
 use 5.010;
@@ -336,7 +336,10 @@ sub collection_page {
     $base_url .= 'public/' if $params->{public};
     my $collector = Mojito::Collection::CRUD->new(config => $self->config, db => $self->db);
     my $collection = $collector->read( $params->{id} );
-    return $self->wrap_page($self->collection_page_view({ collection_id => $params->{id} }), $collection->{collection_name});
+    return $self->wrap_page(
+        $self->collection_page_view( { collection_id => $params->{id}, is_public => $params->{public} }), 
+        $collection->{collection_name},
+    );
 }
 
 sub _build_home_page {
