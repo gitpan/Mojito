@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Page::Render;
 {
-  $Mojito::Page::Render::VERSION = '0.22';
+  $Mojito::Page::Render::VERSION = '0.23';
 }
 use 5.010;
 use Moo;

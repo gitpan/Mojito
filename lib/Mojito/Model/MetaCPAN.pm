@@ -2,7 +2,7 @@ use strictures 1;
 
 package Mojito::Model::MetaCPAN;
 {
-  $Mojito::Model::MetaCPAN::VERSION = '0.22';
+  $Mojito::Model::MetaCPAN::VERSION = '0.23';
 }
 use Moo;
 use HTTP::Tiny;

@@ -76,6 +76,7 @@ files/SHJS/sh_vampire.min.css
 files/SHJS/sh_vim.css
 files/SHJS/sh_vim.min.css
 files/css/mojito.css
+files/css/ui-lightness/images/animated-overlay.gif
 files/css/ui-lightness/images/ui-bg_diagonals-thick_18_b81900_40x40.png
 files/css/ui-lightness/images/ui-bg_diagonals-thick_20_666666_40x40.png
 files/css/ui-lightness/images/ui-bg_flat_10_000000_40x100.png
@@ -90,6 +91,7 @@ files/css/ui-lightness/images/ui-icons_228ef1_256x240.png
 files/css/ui-lightness/images/ui-icons_ef8c08_256x240.png
 files/css/ui-lightness/images/ui-icons_ffd27a_256x240.png
 files/css/ui-lightness/images/ui-icons_ffffff_256x240.png
+files/css/ui-lightness/jquery-ui-1.10.3.custom.css
 files/css/ui-lightness/jquery-ui.custom.css
 files/javascript/publish.js
 files/javascript/render_page.js
