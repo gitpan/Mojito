@@ -1,15 +1,17 @@
 use strictures 1;
-package Mojito::Collection::CRUD::Mongo;
+package Mojito::Collection::CRUD::Elasticsearch;
 {
-  $Mojito::Collection::CRUD::Mongo::VERSION = '0.24';
+  $Mojito::Collection::CRUD::Elasticsearch::VERSION = '0.24';
 }
 use MongoDB::OID;
 use 5.010;
 use Moo;
+use List::Util qw/first/;
 use Syntax::Keyword::Junction qw/ any /;
+use Elasticsearch::Scroll; 
 use Data::Dumper::Concise;
 
-with('Mojito::Role::DB::Mongo');
+with('Mojito::Role::DB::Elasticsearch');
 
 has base_url => ( is => 'rw', );
 
@@ -45,16 +47,20 @@ sub create {
     # add save time as last_modified and created
     $params->{last_modified} = $params->{created} = time();
 
-    my $collection = $self->collection->find_one({ collection_name  => $params->{collection_name} });
-    my $oid;
-    if ( $oid = $collection->{_id} ) {
-        $self->collection->update( { '_id' => $oid }, $params );
-    } 
-    else {
-        $oid = $self->collection->insert($params);
-    }
-    
-    return $oid->value;
+    my $collection_struct = $self->collection->{hits}{hits};
+    my @collections = map { $_->{_source} } @{$collection_struct};
+    my $collection = first { $_->{collection_name} eq $params->{collection_name} } @collections;
+    $params->{id} = 
+         $collection->{_id} 
+      || $collection->{id} 
+      || $self->generate_mongo_like_oid;
+    $self->db->index(
+        index => $self->db_name,
+        type  => $self->collection_name,
+        id    => $params->{id}, 
+        body  => $params,
+    );
+    return $params->{id};
 }
 
 =head2 read
@@ -65,8 +71,12 @@ Read a collection from the database.
 
 sub read {
     my ( $self, $id ) = @_;
-    my $oid = MongoDB::OID->new( value => $id );
-    return $self->collection->find_one( { _id => $oid } );
+    my $doc = $self->db->get_source(
+        index => $self->db_name,
+        type => $self->collection_name,
+        id => $id,
+    );
+    return $doc;
 }
 
 =head2 update
@@ -76,12 +86,15 @@ Update a collection in the database.
 =cut
 
 sub update {
-    my ( $self, $params) = @_;
+    my ( $self, $id, $params) = @_;
 
-    my $oid = MongoDB::OID->new( value => $params->{id} );
     $params->{last_modified} = time();
-
-    $self->collection->update( { '_id' => $oid }, $params );
+    $self->db->update(
+        index => $self->db_name,
+        type  => $self->collection_name,
+        id    => $id,
+        body  =>  { doc => $params },
+    );
 }
 
 =head2 delete
@@ -92,9 +105,7 @@ Delete a collection from the database.
 
 sub delete {
     my ( $self, $id ) = @_;
-
-    my $oid = MongoDB::OID->new( value => $id );
-    $self->collection->remove( { '_id' => $oid } );
+    $self->collection->delete($id);
 }
 
 =head2 get_all
@@ -106,7 +117,7 @@ Returns a MongoDB cursor one can iterate over.
 
 sub get_all {
     my $self = shift;
-    return $self->collection->find;
+    return $self->collection->{hits}{hits};
 }
 
 =head2 collection_for_page
@@ -116,16 +127,14 @@ Get all the collection ids for which this page is a member of.
 =cut
 
 sub collections_for_page {
-    my ($self, $page_id) = @_;
+    my ( $self, $page_id ) = @_;
 
-    # NOTE: For some yet to be determined reason I could not
-    # pass {collected_page_ids => $page_id} to $self->collection->find();
-    my $collections = $self->get_all; 
-    my @collection_ids;
-    while (my $doc = $collections->next) {
-        my @collected_pages = @{$doc->{collected_page_ids}};
-        if ($page_id eq any(@collected_pages)) {
-            push @collection_ids, $doc->{_id}->value ;
+    $page_id //= '';
+    my @collection_ids = ();
+    my @collections = map { $_->{_source} } @{$self->get_all};
+    foreach my $collection (@collections) {
+        if ($page_id eq any(@{$collection->{collected_page_ids}})) {
+            push @collection_ids, $collection->{id};
         }
     }
 
@@ -141,40 +150,42 @@ sub update_collection_membership {
         warn "Coercing collection select params into an ArrefRef" if $ENV{MOJITO_DEBUG};
         $collection_ids = [$collection_ids];
     }
-    # Have we assigned the page to at least one collection?
-    if (defined $collection_ids->[0]) {
-        my $cursor = $self->db->collection->find({collected_page_ids => $params->{mongo_id}});
-        my %HAVE;
-        while (my $collection = $cursor->next) {
-            $HAVE{$collection->{_id}} = 1;
-        }
-        my %WANT = map { $_ => 1 } @{$collection_ids};
-        # collection_id of zero in this case means we don't want to assign
-        # the page to any collection
-        %WANT = () if not $collection_ids->[0];
-        foreach my $collection_id (keys %WANT) {
-            if (not $HAVE{$collection_id}) {
-            # add page_id to the collection
-                my $collection = $self->collector->read($collection_id);
-                push @{$collection->{collected_page_ids}}, $params->{mongo_id};
-                my $oid = MongoDB::OID->new( value => $collection_id );
-                $self->db->collection->update({_id => $oid}, $collection);
-            }
-        }
-        foreach my $collection_id (keys %HAVE) {
-            if (not $WANT{$collection_id}) {
-            # remove the page_id from the collection
-                my $oid = MongoDB::OID->new( value => $collection_id );
-                $self->db->collection->update(
-                    { _id => $oid },
-                    { '$pull' => {collected_page_ids => $params->{mongo_id} } },
-                );
-            }
+
+    my $scroll = Elasticsearch::Scroll->new(
+        es => $self->db,
+        search_type => 'scan',
+        index => $self->db_name,
+        type  => $self->collection_name,
+        body => {query => {term => {collected_page_ids => $params->{mongo_id}}}},
+    );
+    my %HAVE;
+    while (my $collection = $scroll->next) {
+        $HAVE{$collection->{_source}{id}} = 1;
+    }
+    my %WANT = map { $_ => 1 } @{$collection_ids};
+    foreach my $collection_id (keys %WANT) {
+        if (not $HAVE{$collection_id}) {
+        # add page_id to the collection
+            my $collection = $self->read($collection_id);
+            push @{$collection->{collected_page_ids}}, $params->{mongo_id};
+            $self->update($collection_id, $collection);
         }
     }
-    
-}
+    foreach my $collection_id (keys %HAVE) {
+        if (not $WANT{$collection_id}) {
+            # remove the page_id from the collection
+            my $collection = $self->read($collection_id);
+            my @collected_page_ids = grep { $_ ne $params->{mongo_id} }
+              @{$collection->{collected_page_ids}};
+            $self->update(
+                $collection_id, 
+                {collected_page_ids => \@collected_page_ids},
+            );
+        }
+    }
 
+    return;
+}
 =head2 BUILD
 
 Set the collection we want to work with.

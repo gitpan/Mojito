@@ -1,10 +1,11 @@
 use strictures 1;
 package Mojito::Page::CRUD;
 {
-  $Mojito::Page::CRUD::VERSION = '0.23';
+  $Mojito::Page::CRUD::VERSION = '0.24';
 }
 use Mojito::Page::CRUD::Mongo;
 use Mojito::Page::CRUD::Deep;
+use Mojito::Page::CRUD::Elasticsearch;
 use Moo;
 
 =head1 Name

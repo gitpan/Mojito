@@ -1,7 +1,7 @@
 use strictures 1;
 package Mojito::Template;
 {
-  $Mojito::Template::VERSION = '0.23';
+  $Mojito::Template::VERSION = '0.24';
 }
 use Moo;
 use 5.010;

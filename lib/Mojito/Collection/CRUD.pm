@@ -1,10 +1,11 @@
 use strictures 1;
 package Mojito::Collection::CRUD;
 {
-  $Mojito::Collection::CRUD::VERSION = '0.23';
+  $Mojito::Collection::CRUD::VERSION = '0.24';
 }
 use Mojito::Collection::CRUD::Mongo;
 use Mojito::Collection::CRUD::Deep;
+use Mojito::Collection::CRUD::Elasticsearch;
 use Moo;
 
 has 'editer' => (

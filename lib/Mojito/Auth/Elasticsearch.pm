@@ -1,24 +1,24 @@
 use strictures 1;
-package Mojito::Auth::Deep;
+package Mojito::Auth::Elasticsearch;
 {
-  $Mojito::Auth::Deep::VERSION = '0.24';
+  $Mojito::Auth::Elasticsearch::VERSION = '0.24';
 }
 use Moo;
-use Mojito::Page::CRUD::Deep;
+use Mojito::Page::CRUD::Elasticsearch;
 use List::Util qw/first/;
 
-with('Mojito::Role::DB::Deep');
+with('Mojito::Role::DB::Elasticsearch');
 
 =head1 Name
 
-Mojito::Auth::Deep - authentication delegatee class for DBM::Deep
+Mojito::Auth::ES - authentication delegatee class for Elasticsearch
 
 =cut
 
 has editer => (
     is => 'ro',
     lazy => 1,
-    default => sub { Mojito::Page::CRUD::Deep->new(collection_name => 'users') },
+    default => sub { Mojito::Page::CRUD::Elasticsearch->new(collection_name => 'users') },
 );
 =head1 Methods
 
@@ -69,13 +69,14 @@ sub get_user {
     $username //= $self->username;
     return if !$username;
     # If we don't have any users yet, the be somewhat graceful about it
-    return if !$self->collection;
+    return if not scalar @{$self->collection->{hits}{hits}};
 
     # Get collection
-    my $collection = $self->collection->export;
-    my @users = values %{$collection};
-    my $user = first {$_->{username} eq $username} @users;
-    return $user;
+    my $collection = $self->collection->{hits}{hits};
+    #my @users = values %{$collection};
+    my @users = @{$collection};
+    my $user = first {$_->{_source}{username} eq $username} @users;
+    return $user->{_source};
 }
 
 =head2 remove_user
@@ -89,13 +90,12 @@ sub remove_user {
     $username //= $self->username;
     return if !$username;
     # Just in case we have multiple occurrences of the same user
-    my $collection = $self->collection->export;
-    my @users = values %{$collection};
+    my @users = map { $_->{_source} } @{$self->collection->{hits}{hits}};
     my @wanted_users = grep {$_->{username} eq $username} @users;
     my @wanted_ids = map {$_->{id} } @wanted_users;
     my $users_deleted = 0;
     foreach my $id (@wanted_ids) {
-        delete $self->collection->{$id};
+        $self->editer->delete($id);
         $users_deleted++;
     }
     return $users_deleted;

@@ -2,7 +2,7 @@ use strictures 1;
 
 package Mojito::Page::Publish;
 {
-  $Mojito::Page::Publish::VERSION = '0.23';
+  $Mojito::Page::Publish::VERSION = '0.24';
 }
 use Moo;
 use WWW::Mechanize;

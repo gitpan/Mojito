@@ -3,8 +3,6 @@ abstract: 'Web Document System'
 author:
   - 'Mateu X. Hunter'
 build_requires:
-  File::Find: 0
-  File::Temp: 0
   FindBin: 0
   HTTP::Request: 0
   HTTP::Request::Common: 0
@@ -16,12 +14,13 @@ build_requires:
   Test::Differences: 0
   Test::Exception: 0
   Test::More: 0
+  lib: 0
   strict: 0
   warnings: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.300034, CPAN::Meta::Converter version 2.120921'
+generated_by: 'Dist::Zilla version 4.300039, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -35,6 +34,8 @@ requires:
   DateTime::TimeZone: 0
   Digest::MD5: 0
   Dir::Self: 0
+  Elasticsearch: 0
+  Elasticsearch::Scroll: 0
   Encode: 0
   File::Spec: 0
   Git::Wrapper: 0
@@ -70,4 +71,4 @@ requires:
   perl: 5.010001
   strictures: 1
   utf8: 0
-version: 0.23
+version: 0.24

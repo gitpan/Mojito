@@ -27,6 +27,8 @@ my %WriteMakefileArgs = (
     "DateTime::TimeZone" => 0,
     "Digest::MD5" => 0,
     "Dir::Self" => 0,
+    "Elasticsearch" => 0,
+    "Elasticsearch::Scroll" => 0,
     "Encode" => 0,
     "File::Spec" => 0,
     "Git::Wrapper" => 0,
@@ -63,8 +65,6 @@ my %WriteMakefileArgs = (
     "utf8" => 0
   },
   "TEST_REQUIRES" => {
-    "File::Find" => 0,
-    "File::Temp" => 0,
     "FindBin" => 0,
     "HTTP::Request" => 0,
     "HTTP::Request::Common" => 0,
@@ -76,10 +76,11 @@ my %WriteMakefileArgs = (
     "Test::Differences" => 0,
     "Test::Exception" => 0,
     "Test::More" => 0,
+    "lib" => 0,
     "strict" => 0,
     "warnings" => 0
   },
-  "VERSION" => "0.23",
+  "VERSION" => "0.24",
   "test" => {
     "TESTS" => "t/*.t"
   }

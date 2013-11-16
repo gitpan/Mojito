@@ -1,10 +1,11 @@
 use strictures 1;
 package Mojito::Model::Doc;
 {
-  $Mojito::Model::Doc::VERSION = '0.23';
+  $Mojito::Model::Doc::VERSION = '0.24';
 }
 use Mojito::Model::Doc::Mongo;
 use Mojito::Model::Doc::Deep;
+use Mojito::Model::Doc::Elasticsearch;
 use Moo;
 use Data::Dumper::Concise;
 
